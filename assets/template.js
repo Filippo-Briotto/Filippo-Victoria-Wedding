@@ -45,11 +45,24 @@
       ICONS[name] + '</svg>';
   }
 
-  /* A real button, with words on it, for each way you can go from here. */
-  function goButton(stage, label, iconName, extraClass, iconAfter) {
+  /* A real button, with words on it, for each way you can go from here.
+     labelHtml is already escaped. */
+  function goButton(stage, labelHtml, iconName, extraClass, iconAfter) {
     return '<button type="button" class="go' + (extraClass ? ' ' + extraClass : '') + '" data-stage-to="' + stage + '">' +
-      (iconAfter ? '' : icon(iconName)) + '<span>' + esc(label) + '</span>' + (iconAfter ? icon(iconName) : '') +
+      (iconAfter ? '' : icon(iconName)) + '<span>' + labelHtml + '</span>' + (iconAfter ? icon(iconName) : '') +
     '</button>';
+  }
+
+  /* A note pencilled in the margin in red ink, with an arrow curling down to
+     the thing it is about. Checking in is the one part of the invitation that
+     asks something of the guest, and the boarding passes do not look like a
+     form, so it gets written instructions the way a person would leave them. */
+  function marginNote(text, extraClass) {
+    return '<p class="note' + (extraClass ? ' ' + extraClass : '') + '"><span>' + esc(text) + '</span>' +
+      '<svg class="note__arrow" viewBox="0 0 36 32" width="36" height="32" fill="none" stroke="currentColor"' +
+        ' stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M31 3.5C17 3 7.5 9.5 8.6 27"/><path d="M3.4 21.6 8.6 27.6l4.6-6.4"/>' +
+      '</svg></p>';
   }
 
   /* Small per-pass irregularities. Real tickets never land dead square, and
@@ -67,6 +80,7 @@
     var ask = legCopy.checkinAsk || t.checkinAsk;
     return '' +
       '<div class="checkin" data-checkin="' + leg.id + '">' +
+        marginNote(t.notePass, 'note--pass') +
         '<span class="checkin__ask">' + esc(ask) + '</span>' +
         '<span class="checkin__opts" role="group" aria-label="' + esc(legCopy.toCity + ' — ' + ask) + '">' +
           '<button type="button" data-v="yes" aria-pressed="false">' + esc(t.checkinYes) + '</button>' +
@@ -97,6 +111,7 @@
       '</div>' +
       '<label class="desk__label" for="desk-msg">' + esc(t.lMessage) + '</label>' +
       '<textarea class="desk__msg" id="desk-msg" rows="3" maxlength="2000"></textarea>' +
+      marginNote(t.noteDesk, 'note--desk') +
       '<div class="desk__foot">' +
         '<button type="button" class="desk__go" id="desk-go">' + esc(t.checkinSend) + '</button>' +
         '<p class="desk__status" id="desk-status" aria-live="polite"></p>' +
@@ -224,7 +239,7 @@
           '<h3>' + esc(t.itineraryTitle) + '</h3>' +
           '<ul class="itin">' + itinerary + '</ul>' +
           (withCheckin
-            ? '<p class="letter__checkin"><button type="button" data-stage-to="tickets">' + esc(t.letterCheckin) + '</button></p>'
+            ? '<p class="letter__checkin">' + goButton('tickets', esc(t.letterCheckin), 'tickets', 'go--rsvp') + '</p>'
             : '') +
         '</section>' +
         '<span class="sheet__no">' + esc(t.pageOf(1, 2)) + '</span>' +
@@ -783,19 +798,20 @@
 '.checkin{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:16px;padding-top:14px;',
 '  border-top:1px dashed var(--line)}',
 '.checkin[hidden],.desk[hidden],.letter__checkin[hidden]{display:none}',
-'.checkin__ask{flex:1 1 210px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;',
-'  text-transform:uppercase;color:var(--ink-2)}',
-'.checkin__opts{display:flex;flex-wrap:wrap;gap:8px}',
-'.checkin__opts button,.desk__go,.letter__checkin button{font:inherit;font-family:var(--mono);font-size:12px;',
-'  letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border-radius:2px;padding:9px 14px;',
-'  background:transparent;border:1px solid rgba(18,58,77,.5);color:var(--blue);',
+'.checkin__ask{flex:1 1 210px;font-size:20px;font-weight:600;line-height:1.2;color:var(--blue)}',
+'.checkin__opts{display:flex;flex-wrap:wrap;gap:10px}',
+'.checkin__opts button,.desk__go{font:inherit;font-size:18px;font-weight:600;line-height:1.15;',
+'  min-height:50px;cursor:pointer;border-radius:999px;padding:11px 20px;',
+'  background:transparent;border:1.5px solid rgba(18,58,77,.6);color:var(--blue);',
 '  transition:background .2s,color .2s,border-color .2s}',
+/* a tick on the one you picked, so the choice reads without telling colours apart */
+'.checkin__opts button[aria-pressed="true"]::before{content:"\\2713\\00a0"}',
 '.checkin__opts button[data-v="no"]{border-color:rgba(109,97,83,.5);color:var(--ink-2)}',
 '.checkin__opts button:hover{background:rgba(18,58,77,.07)}',
 '.checkin__opts button[data-v="yes"][aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--ticket)}',
 '.checkin__opts button[data-v="no"][aria-pressed="true"]{background:var(--ink-2);border-color:var(--ink-2);color:var(--ticket)}',
-'.checkin__opts button:focus-visible,.desk button:focus-visible,.desk__msg:focus-visible,',
-'.letter__checkin button:focus-visible{outline:2px solid #8a5a34;outline-offset:2px}',
+'.checkin__opts button:focus-visible,.desk button:focus-visible,.desk__msg:focus-visible{',
+'  outline:3px solid #8a5a34;outline-offset:2px}',
 /* A rubber stamp, inked once the desk has the answer: pressed on at an angle,
    a little uneven, and multiplied into the ticket rather than sitting on it. */
 /* It lands across the flight path, between the two airports. */
@@ -809,31 +825,48 @@
 '.pass__stamp i{font-style:normal;font-size:9px;letter-spacing:.24em}',
 '.pass__stamp.is-on{opacity:.82;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}',
 '.pass__stamp.is-no{color:#5d5348}',
-'.letter__checkin{margin:20px 0 0!important;text-align:center}',
-'.letter__checkin button:hover{background:rgba(18,58,77,.07)}',
+'.letter__checkin{margin:24px 0 0!important;text-align:center}',
 /* the desk: one more slip of ticket stock under the passes */
 '.desk{margin:6px 0 0;padding:clamp(20px,3vw,28px);border-radius:3px;',
 '  background:var(--sheen),var(--ticket-tex) 0 0/168px 168px repeat,var(--ticket);',
 '  box-shadow:var(--cut-edge),var(--lift);display:flex;flex-direction:column;gap:12px}',
 '.desk__title{margin:0;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.34em;',
 '  text-transform:uppercase;color:var(--red)}',
-'.desk__intro{margin:0;font-size:16px;line-height:1.5;color:#4a4137}',
+'.desk__intro{margin:0;font-size:18px;line-height:1.5;color:#4a4137}',
 '.desk__row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;',
 '  padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}',
-'.desk__label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}',
+'.desk__label{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}',
 '.desk__stepper{display:flex;align-items:center;gap:4px}',
-'.desk__stepper button{font:inherit;font-size:20px;line-height:1;width:38px;height:38px;cursor:pointer;',
+'.desk__stepper button{font:inherit;font-size:24px;line-height:1;width:48px;height:48px;cursor:pointer;',
 '  border-radius:2px;border:1px solid rgba(18,58,77,.4);background:transparent;color:var(--blue)}',
 '.desk__stepper output{min-width:40px;text-align:center;font-family:var(--mono);font-size:18px;font-weight:700}',
 '.desk__msg{width:100%;min-height:84px;resize:vertical;font:inherit;font-size:17px;line-height:1.5;',
 '  padding:10px 12px;border:1px solid var(--line);border-radius:2px;background:rgba(255,255,255,.5);color:var(--ink)}',
 '.desk__msg::placeholder{color:var(--ink-2);opacity:.8;font-style:italic}',
 '.desk__foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}',
-'.desk__go{background:var(--blue);border-color:var(--blue);color:var(--ticket);padding:11px 18px}',
-'.desk__go:hover{background:#0c2a39}',
+'.desk__go{background:var(--red);border-color:var(--red);color:var(--ticket);padding:12px 26px;font-size:20px}',
+'.desk__go:hover{background:#8c3322}',
 '.desk__go:disabled{opacity:.6;cursor:default}',
 '.desk__go[hidden]{display:none}',
-'.desk__status{margin:0;flex:1 1 220px;font-size:16px;color:var(--blue)}',
+'.desk__status{margin:0;flex:1 1 220px;font-size:18px;color:var(--blue)}',
+/* ---------- notes in the margin ---------- */
+'.note{display:flex;align-items:flex-end;gap:2px;width:fit-content;max-width:100%;margin:0;',
+'  font-style:italic;font-weight:600;',
+'  font-size:21px;line-height:1.15;color:var(--red);transform:rotate(-1.6deg);transform-origin:0 100%}',
+'.note__arrow{flex:none;width:36px;height:32px;margin:0 0 -18px}',
+'.note--pass{flex:1 1 100%;margin:0 0 4px}',
+/* the button is under the start of the line, so the arrow goes first */
+'.note--desk{flex-direction:row-reverse;margin:4px 0 8px 2px}',
+/* the one on the cloth, above the passes, in a slightly deeper ink */
+'.note--tickets{margin:0 auto 26px;text-align:center;color:#93321f;',
+'  transform:rotate(-1deg);transform-origin:50% 50%}',
+/* a note says its piece and then gets out of the way */
+'.checkin.is-answered .note,body.rsvp-done .note{display:none}',
+'.go--rsvp{background:var(--red);border-color:var(--red)}',
+'.go--rsvp:hover{background:#8c3322}',
+'.when-no-rsvp{display:none}',
+'body.no-checkin .rsvp-bit,body.no-checkin .when-rsvp,body.no-checkin .note{display:none}',
+'body.no-checkin .when-no-rsvp{display:inline}',
 '.desk__status.is-error{color:var(--red)}',
 '.desk.is-done .desk__status::before{content:"\\2713\\00a0\\00a0";color:var(--red)}',
 
@@ -882,7 +915,7 @@
 /* ---------- print: the passes, and nothing else ---------- */
 '@media print{',
 '  body{background:#fff!important;background-image:none!important;padding:0;display:block}',
-'  .env-wrap,.putback,.pagefoot,.tearline,.tickets__intro,.panel--letter,.guide,.nav,.panel-end,',
+'  .env-wrap,.putback,.pagefoot,.tearline,.tickets__intro,.panel--letter,.guide,.nav,.panel-end,.note,',
 '  .garden,.checkin,.desk{display:none!important}',
 '  .panel--tickets,.panel--tickets[hidden]{display:block!important;width:100%;margin:0;animation:none}',
 /* on paper they lie square and separate again: the deal animation sets a
@@ -1067,6 +1100,8 @@
       Array.prototype.forEach.call(document.querySelectorAll('.checkin,.desk,.letter__checkin'), function (el) {
         el.hidden = true;
       });
+      /* and every word that points at it */
+      document.body.classList.add('no-checkin');
     }
     if (!window.fetch || !window.TextEncoder || !window.crypto || !crypto.subtle) return off();
 
@@ -1105,6 +1140,7 @@
     function paint() {
       C.legs.forEach(function (id) {
         var box = document.querySelector('[data-checkin="' + id + '"]');
+        box.classList.toggle('is-answered', !!answers[id]);
         Array.prototype.forEach.call(box.querySelectorAll('button'), function (b) {
           b.setAttribute('aria-pressed', String(answers[id] === b.getAttribute('data-v')));
         });
@@ -1123,6 +1159,7 @@
       statusEl.className = 'desk__status' + (error ? ' is-error' : '');
       statusEl.textContent = error || (done ? C.t.done.replace('{date}', day(saved.at)) : '');
       desk.classList.toggle('is-done', done);
+      document.body.classList.toggle('rsvp-done', done);
     }
 
     document.addEventListener('click', function (e) {
@@ -1232,7 +1269,7 @@
 '<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">\n' +
 '<meta name="referrer" content="no-referrer">\n' +
 '<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}) + '\n</style>\n' +
-'<noscript><style>.env-wrap,.guide,.nav,.panel-end{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
+'<noscript><style>.env-wrap,.guide,.nav,.panel-end,.note,.checkin,.desk,.letter__checkin{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
 '</head>\n' +
 '<body data-stage="sealed" data-envelope="' + envelope + '">\n' +
 
@@ -1271,33 +1308,41 @@
 '<p class="putback">' + esc(t.backToEnvelope) + '</p>\n' +
 '<div class="guide">' +
   '<div class="guide__step guide__step--sealed">' +
-    goButton('open', t.envelopeOpenLabel, 'envelope') +
+    goButton('open', esc(t.envelopeOpenLabel), 'envelope') +
   '</div>' +
   '<div class="guide__step guide__step--open">' +
-    '<p class="guide__say">' + esc(t.openHint) + '</p>' +
+    '<p class="guide__say">' + esc(t.openHint) +
+      (withCheckin ? '<span class="rsvp-bit"> ' + esc(t.rsvpHint) + '</span>' : '') + '</p>' +
     '<div class="guide__row">' +
-      goButton('letter', t.readLetter, 'letter') +
-      goButton('tickets', t.seeTickets, 'tickets') +
+      goButton('letter', esc(t.readLetter), 'letter') +
+      (withCheckin
+        ? goButton('tickets', esc(t.seeTickets) + '<span class="rsvp-bit">' + esc(t.rsvpSuffix) + '</span>', 'tickets', 'go--rsvp')
+        : goButton('tickets', esc(t.seeTickets), 'tickets')) +
     '</div>' +
   '</div>' +
 '</div>\n' +
 
 '<section class="panel panel--letter" id="panel-letter" hidden>' +
   letter(t, names, note, withCheckin) +
-  '<p class="panel-end">' + goButton('tickets', t.nextTickets, 'next', '', true) + '</p>' +
+  '<p class="panel-end">' + goButton('tickets', esc(t.nextTickets), 'next', '', true) + '</p>' +
 '</section>\n' +
 '<section class="panel panel--tickets" id="panel-tickets" hidden>' +
   '<p class="tearline"><button type="button" class="tearoff" id="btn-print">' + esc(t.printTickets) + '</button></p>' +
+  (withCheckin ? marginNote(t.noteTickets, 'note--tickets') : '') +
   passes +
   (withCheckin ? desk(t) : '') +
-  '<p class="panel-end">' + goButton('letter', t.backLetter, 'back') + '</p>' +
+  '<p class="panel-end">' + goButton('letter', esc(t.backLetter), 'back') + '</p>' +
 '</section>\n' +
 '<nav class="nav" aria-label="' + esc(t.navLabel) + '">' +
   ['open', 'letter', 'tickets'].map(function (stage) {
-    var label = { open: t.navEnvelope, letter: t.navLetter, tickets: t.navTickets }[stage];
+    var label = esc({ open: t.navEnvelope, letter: t.navLetter, tickets: t.navTickets }[stage]);
+    if (stage === 'tickets' && withCheckin) {
+      label = '<span class="when-rsvp">' + esc(t.navTicketsRsvp) + '</span>' +
+        '<span class="when-no-rsvp">' + label + '</span>';
+    }
     var name = stage === 'open' ? 'envelope' : stage;
     return '<button type="button" class="nav__btn" data-stage-to="' + stage + '">' +
-      icon(name) + '<span>' + esc(label) + '</span></button>';
+      icon(name) + '<span>' + label + '</span></button>';
   }).join('') +
 '</nav>\n' +
 
