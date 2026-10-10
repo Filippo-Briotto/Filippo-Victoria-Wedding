@@ -244,13 +244,12 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   the lines land and the paper grain shows through them. How strong it is is the `opacity` on
   `.sheet--watermark::after` in [`assets/template.js`](assets/template.js). With no picture in
   `assets/stamp/`, the sheet is plain.
-- **The second sheet ends with a picture of the two of you**, at full strength under the
-  sign-off. It is `assets/letter/picture.webp` (a `.jpg` or `.png` of the same name works too);
-  `tools/build-stamp-art.py` lifts its ground to white, feathers its edges out and shrinks it to
-  a JPEG, so it is printed on the paper rather than pasted over it. It takes whatever room the
-  writing leaves, so a long personal note makes it smaller instead of making the sheet taller
-  (in browsers too old for that, it keeps a fixed height and a long note makes the sheet
-  taller). Delete the file and rerun the script to go without.
+- **The second sheet ends with a watercolour of the two of you**, under the sign-off, shown as
+  it was painted: not blended into the paper. It is `assets/letter/picture.webp` (a `.jpg` or
+  `.png` of the same name works too); `tools/build-stamp-art.py` only scales it down to a JPEG.
+  It takes whatever room the writing leaves, so a long personal note makes it smaller instead of
+  making the sheet taller (in browsers too old for that, it keeps a fixed height and a long note
+  makes the sheet taller). Delete the file and rerun the script to go without.
 - **The envelope is the same design at every size.** Everything inside it — type, stamp,
   cancellation, wax seal — is sized off one `--w` custom property set to the envelope's own
   width, so a phone gets the same composition as a desktop, just smaller, rather than a

@@ -656,15 +656,15 @@
 '.sheet--watermark::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;',
 '  background:var(--letter-art) 50% 50%/min(88%,520px) auto no-repeat;',
 '  mix-blend-mode:multiply;opacity:.13}',
-/* And at full strength at the foot of the second, under the sign-off. Same
-   levelling and the same multiply, so it is printed on the paper rather than
-   laid on top of it. Where the browser can measure the sheet (container units),
-   the second sheet becomes a column and the picture takes whatever room the
-   writing leaves above the page number -- so a long personal note shrinks the
-   picture instead of pushing the sheet past A4. Elsewhere it simply has a
-   height of its own, and a long note makes the sheet taller as before. */
+/* And at the foot of the second, under the sign-off, a watercolour of the two
+   of us, shown as it was painted: not blended into the paper. Where the browser
+   can measure the sheet (container units), the second sheet becomes a column
+   and the picture takes whatever room the writing leaves above the page number
+   -- so a long personal note shrinks the picture instead of pushing the sheet
+   past A4. Elsewhere it simply has a height of its own, and a long note makes
+   the sheet taller as before. */
 '.letter__picture{display:block;margin-top:28px;height:clamp(170px,40vw,380px);',
-'  background:var(--letter-picture) 50% 50%/contain no-repeat;mix-blend-mode:multiply}',
+'  background:var(--letter-picture) 50% 50%/contain no-repeat}',
 '@supports (width:1cqw){',
 '  .letter{container-type:inline-size}',
 /* the float that holds the other sheet to A4 would be a flex item here, so the

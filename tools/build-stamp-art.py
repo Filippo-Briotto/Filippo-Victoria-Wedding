@@ -19,9 +19,9 @@ nothing lands, and the paper's own grain shows straight through the drawing
 with no box around it.
 
 The picture. Whatever is sitting at assets/letter/picture.(jpg|png|webp) is
-printed at full strength at the foot of the second sheet, under the sign-off.
-It gets the same levelling, and its edges are feathered out to white as well,
-so a ground that is not quite even still has no rim where it meets the paper.
+shown at the foot of the second sheet, under the sign-off, exactly as it was
+painted: it is only scaled down and saved as a JPEG, never blended into the
+paper.
 
 Remove any of them and run this again to leave that place bare (the stamp falls
 back to its drawn posy).
@@ -31,7 +31,7 @@ import io
 import json
 import pathlib
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter
+from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TYPES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp"}
@@ -56,29 +56,17 @@ def find(folder, stem, types):
                  if p.stem == stem and p.suffix.lower() in types), None)
 
 
-def levelled(img, white_point=1.0):
-    """The picture with its ground lifted to white.
+def levelled(img):
+    """The drawing with its ground lifted to white.
 
-    The ground is whatever the corners are: outside a round design, or the
-    margin of a painting. white_point below 1 lifts everything within that
-    fraction of the ground to white too, which takes a paper grain out with it.
+    The ground is whatever the corners are, outside the round design.
     """
     w, h = img.size
     corners = [img.getpixel(p) for p in ((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3))]
-    ground = [sum(c[i] for c in corners) / len(corners) * white_point for i in range(3)]
+    ground = [sum(c[i] for c in corners) / len(corners) for i in range(3)]
     bands = [band.point(lambda v, g=g: min(255, round(v * 255 / g)))
              for band, g in zip(img.split(), ground)]
     return Image.merge("RGB", bands)
-
-
-def feathered(img, fraction=0.06):
-    """Fade the outermost few percent of a picture to white."""
-    w, h = img.size
-    edge = round(min(w, h) * fraction)
-    mask = Image.new("L", (w, h), 0)
-    ImageDraw.Draw(mask).rectangle((edge, edge, w - 1 - edge, h - 1 - edge), fill=255)
-    mask = mask.filter(ImageFilter.GaussianBlur(edge / 2))
-    return Image.composite(img, Image.new("RGB", (w, h), "white"), mask)
 
 
 def jpeg(img, quality):
@@ -103,7 +91,7 @@ def main():
         img = Image.open(picture).convert("RGB")
         if img.width > PICTURE_WIDTH:
             img = img.resize((PICTURE_WIDTH, round(img.height * PICTURE_WIDTH / img.width)), Image.LANCZOS)
-        letter_picture = jpeg(feathered(levelled(img, white_point=.96)), 72)
+        letter_picture = jpeg(img, 80)
     else:
         print("no assets/letter/picture.{jpg,png,webp}; second sheet goes without")
 
