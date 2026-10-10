@@ -181,7 +181,7 @@
     '</article>';
   }
 
-  function letter(t, names, note, withCheckin) {
+  function letter(t, names, note, withCheckin, withPicture) {
     var itinerary = I.LEGS.map(function (leg) {
       var legCopy = t.legs[leg.id];
       return '' +
@@ -205,7 +205,7 @@
     /* Two sheets of A4, not one very long one. */
     return '' +
     '<article class="letter">' +
-      '<div class="sheet paper">' +
+      '<div class="sheet sheet--watermark paper">' +
         '<header class="letter__head">' +
           '<span class="letter__mark">' + I.roundelSvg(46) + '</span>' +
           '<span class="letter__brand">' + esc(t.brand) + '</span>' +
@@ -230,7 +230,7 @@
         '<span class="sheet__no">' + esc(t.pageOf(1, 2)) + '</span>' +
       '</div>' +
 
-      '<div class="sheet paper">' +
+      '<div class="sheet' + (withPicture ? ' sheet--pictured' : '') + ' paper">' +
         noteBlock +
 
         '<footer class="letter__sign">' +
@@ -240,6 +240,10 @@
         '</footer>' +
 
         '<p class="letter__small">' + esc(t.smallPrint) + '</p>' +
+        (withPicture
+          ? '<div class="letter__picture" role="img" aria-label="' +
+              esc(I.COUPLE.shortOne + ' & ' + I.COUPLE.shortTwo) + '"></div>'
+          : '') +
         '<span class="sheet__no">' + esc(t.pageOf(2, 2)) + '</span>' +
       '</div>' +
     '</article>';
@@ -284,7 +288,7 @@
     '</div>';
   }
 
-  function styles(fontCss, tex, flo, letterArt) {
+  function styles(fontCss, tex, flo, letterArt, letterPicture) {
     return fontCss + '\n' + [
 '*,*::before,*::after{box-sizing:border-box}',
 'html{-webkit-text-size-adjust:100%}',
@@ -311,6 +315,7 @@
 '  --bloom-a:url(' + (flo.cornerA || '') + ');',
 '  --bloom-b:url(' + (flo.cornerB || '') + ');',
 '  --letter-art:' + (letterArt ? 'url(' + letterArt + ')' : 'none') + ';',
+'  --letter-picture:' + (letterPicture ? 'url(' + letterPicture + ')' : 'none') + ';',
 /* Boarding passes are not printed on writing paper. Ticket stock is thinner and
    whiter, drawn through a press lengthwise, so it gets its own tile and colour. */
 '  --ticket:#f9f6ec;--ticket-2:#f2ecdd;',
@@ -633,7 +638,8 @@
 '.letter{position:relative;z-index:1;display:flex;flex-direction:column;',
 '  gap:clamp(16px,2.4vw,28px)}',
 '.sheet{position:relative;border-radius:1px;overflow:hidden;',
-'  padding:clamp(30px,4.6vw,54px) clamp(24px,4.4vw,50px) clamp(48px,5.6vw,66px);',
+'  --pad-t:clamp(30px,4.6vw,54px);--pad-x:clamp(24px,4.4vw,50px);--pad-b:clamp(48px,5.6vw,66px);',
+'  padding:var(--pad-t) var(--pad-x) var(--pad-b);',
 '  background:var(--sheen),var(--curve),var(--paper-tex) 0 0/216px 216px repeat,var(--paper);',
 '  box-shadow:var(--cut-edge),var(--lift);',
 '  line-height:1.6;font-size:clamp(17px,2.1vw,19px)}',
@@ -642,14 +648,31 @@
    personal note can still push it taller, which is what a second sheet of the
    real thing would do too. */
 '.sheet::before{content:"";display:block;float:left;width:0;padding-top:141.4%}',
-/* The two of us, faintly, across the middle of every sheet, the way a watermark
-   sits in good stationery. The drawing's ground was levelled to white when it
-   was built, and multiplying it onto the sheet lets white vanish, so only the
-   lines land and the paper's own grain shows through them. It sits under the
-   writing and over the paper. */
-'.sheet::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;',
+/* The two of us, faintly, across the middle of the first sheet, the way a
+   watermark sits in good stationery. The drawing's ground was levelled to white
+   when it was built, and multiplying it onto the sheet lets white vanish, so
+   only the lines land and the paper's own grain shows through them. It sits
+   under the writing and over the paper. */
+'.sheet--watermark::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;',
 '  background:var(--letter-art) 50% 50%/min(88%,520px) auto no-repeat;',
 '  mix-blend-mode:multiply;opacity:.13}',
+/* And at full strength at the foot of the second, under the sign-off. Same
+   levelling and the same multiply, so it is printed on the paper rather than
+   laid on top of it. Where the browser can measure the sheet (container units),
+   the second sheet becomes a column and the picture takes whatever room the
+   writing leaves above the page number -- so a long personal note shrinks the
+   picture instead of pushing the sheet past A4. Elsewhere it simply has a
+   height of its own, and a long note makes the sheet taller as before. */
+'.letter__picture{display:block;margin-top:28px;height:clamp(170px,40vw,380px);',
+'  background:var(--letter-picture) 50% 50%/contain no-repeat;mix-blend-mode:multiply}',
+'@supports (width:1cqw){',
+'  .letter{container-type:inline-size}',
+/* the float that holds the other sheet to A4 would be a flex item here, so the
+   same height is given directly: A4 on the writing area, plus the margins */
+'  .sheet--pictured{display:flex;flex-direction:column;',
+'    min-height:calc((100cqw - 2 * var(--pad-x)) * 1.414 + var(--pad-t) + var(--pad-b))}',
+'  .sheet--pictured::before{display:none}',
+'  .letter__picture{flex:1 1 auto;height:auto;min-height:clamp(150px,34cqw,240px)}}',
 '.sheet__no{position:absolute;left:0;right:0;bottom:clamp(20px,2.6vw,28px);text-align:center;',
 '  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;',
 '  color:var(--ink-2);opacity:.55}',
@@ -1240,7 +1263,7 @@
 '<meta name="description" content="' + esc(t.brand + ' — ' + t.strapline) + '">\n' +
 '<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">\n' +
 '<meta name="referrer" content="no-referrer">\n' +
-'<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}, opts.letterArt) + '\n</style>\n' +
+'<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}, opts.letterArt, opts.letterPicture) + '\n</style>\n' +
 '<noscript><style>.env-wrap,.guide,.nav,.panel-end{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
 '</head>\n' +
 '<body data-stage="sealed" data-envelope="' + envelope + '">\n' +
@@ -1292,7 +1315,7 @@
 '</div>\n' +
 
 '<section class="panel panel--letter" id="panel-letter" hidden>' +
-  letter(t, names, note, withCheckin) +
+  letter(t, names, note, withCheckin, !!opts.letterPicture) +
   '<p class="panel-end">' + goButton('tickets', t.nextTickets, 'next', '', true) + '</p>' +
 '</section>\n' +
 '<section class="panel panel--tickets" id="panel-tickets" hidden>' +
