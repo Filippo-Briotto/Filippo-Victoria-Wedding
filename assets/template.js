@@ -82,7 +82,7 @@
       '<div class="checkin" data-checkin="' + leg.id + '">' +
         marginNote(t.notePass, 'note--pass') +
         '<span class="checkin__ask">' + esc(ask) + '</span>' +
-        '<span class="checkin__opts" role="group" aria-label="' + esc(legCopy.toCity + ' — ' + ask) + '">' +
+        '<span class="checkin__opts" role="group" aria-label="' + esc(legCopy.toCity + ': ' + ask) + '">' +
           '<button type="button" data-v="yes" aria-pressed="false">' + esc(t.checkinYes) + '</button>' +
           '<button type="button" data-v="no" aria-pressed="false">' + esc(t.checkinNo) + '</button>' +
         '</span>' +
@@ -128,7 +128,7 @@
     var tilt = TILTS[index % TILTS.length];
 
     return '' +
-    '<article class="pass paper" tabindex="0" aria-label="' + esc(t.boardingPass + ' — ' + legCopy.toCity) + '"' +
+    '<article class="pass paper" tabindex="0" aria-label="' + esc(t.boardingPass + ', ' + legCopy.toCity) + '"' +
       ' style="--from-tilt:' + tilt.from + ';--rest-tilt:' + tilt.rest +
       ';--deal-delay:' + (0.14 + index * 0.13).toFixed(2) + 's">' +
       '<div class="pass__main">' +
@@ -1299,7 +1299,7 @@
 '<meta charset="utf-8">\n' +
 '<meta name="viewport" content="width=device-width,initial-scale=1">\n' +
 '<title>' + esc(t.docTitle) + (names.first ? ' · ' + esc(names.first) : '') + '</title>\n' +
-'<meta name="description" content="' + esc(t.brand + ' — ' + t.strapline) + '">\n' +
+'<meta name="description" content="' + esc(t.brand + ' · ' + t.strapline) + '">\n' +
 '<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">\n' +
 '<meta name="referrer" content="no-referrer">\n' +
 '<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}, opts.letterArt, opts.letterPicture) + '\n</style>\n' +

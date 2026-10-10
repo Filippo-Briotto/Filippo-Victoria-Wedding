@@ -73,7 +73,7 @@ window.INVITATION = (function () {
       from: 'AMS',
       to: 'WDH',
       seat: '1C',
-      gate: '—',
+      gate: 'TBA',
       tkt: '2027-TBA',
       time: '',
       venue: ''
@@ -87,7 +87,7 @@ window.INVITATION = (function () {
   var COPY = {
     en: {
       htmlLang: 'en',
-      docTitle: 'Briotto Family Airline — Boarding Pass',
+      docTitle: 'Briotto Family Airline · Boarding Pass',
       brand: 'Briotto Family Airline',
       strapline: 'Wedding invitation · First class service',
 
@@ -117,9 +117,9 @@ window.INVITATION = (function () {
       refLabel: 'Reference',
       greeting: function (name) { return 'Dear ' + name + ','; },
       letterBody: [
-        'Your seat is reserved. We are getting married, and we would like you there — not once, but three times, on three legs of the same happy journey.',
-        'The first leg lands in Italy on the 21st of December, for a party to set the whole thing off. Eight days later, on the 29th, we land in Amsterdam to get married: a small, quiet ceremony, the vows and nothing else. The last leg is the big one — the traditional celebration in Namibia, in 2027, on a date still to be announced.',
-        'Full details for each leg will follow in good time. For now, all you need to do is say yes.'
+        'Good news from the flight deck: we are getting married! We couldn’t settle on just one celebration, so we booked three, and there is a seat with your name on it for every leg.',
+        'We take off in Italy on the 21st of December, with a party to get the whole thing started. On the 29th we touch down in Amsterdam to make it official: a small ceremony, just the vows. Then, in 2027, the final leg takes us to Namibia for one more celebration, on a date still being added to the timetable.',
+        'Boarding details for each leg will follow closer to departure. For now, all we need from you is a yes.'
       ],
       itineraryTitle: 'Your itinerary',
       pageOf: function (n, of) { return 'Page ' + n + ' of ' + of; },
@@ -160,7 +160,7 @@ window.INVITATION = (function () {
       checkinSend: 'Confirm check-in',
       checkinUpdate: 'Update check-in',
       checkinSending: 'Sending…',
-      checkinDone: 'Checked in on {date}. Thank you — we can’t wait to see you.',
+      checkinDone: 'Checked in on {date}. Thank you! We can’t wait to see you.',
       checkinPick: 'First choose “Yes, I’ll be there” or “Sorry, I can’t” on at least one boarding pass.',
       checkinFailed: 'The check-in desk could not be reached. Check your connection and try again.',
       letterCheckin: 'RSVP on your boarding passes',
@@ -184,7 +184,7 @@ window.INVITATION = (function () {
         },
         ams: {
           title: 'The vows',
-          blurb: 'An intimate ceremony. No reception — just the two of us saying it out loud, and you there to hear it.',
+          blurb: 'An intimate ceremony with no reception: just the two of us saying it out loud, and you there to hear it.',
           fromCity: 'Italy',
           toCity: 'Amsterdam',
           date: '29 DEC 2026',
@@ -204,7 +204,7 @@ window.INVITATION = (function () {
 
     it: {
       htmlLang: 'it',
-      docTitle: 'Briotto Family Airline — Carta d’imbarco',
+      docTitle: 'Briotto Family Airline · Carta d’imbarco',
       brand: 'Briotto Family Airline',
       strapline: 'Invito di nozze · Servizio di prima classe',
 
@@ -232,9 +232,9 @@ window.INVITATION = (function () {
       refLabel: 'Riferimento',
       greeting: function (name) { return 'Ciao ' + name + ','; },
       letterBody: [
-        'Il tuo posto è prenotato. Ci sposiamo, e ci farebbe piacere averti con noi — non una volta, ma tre, sulle tre tratte dello stesso viaggio felice.',
-        'La prima tratta atterra in Italia il 21 dicembre, per una festa che dia il via a tutto. Otto giorni dopo, il 29, atterriamo ad Amsterdam per sposarci: una cerimonia piccola e raccolta, solo le promesse. L’ultima tratta è quella grande — la celebrazione tradizionale in Namibia, nel 2027, in una data ancora da annunciare.',
-        'Tutti i dettagli di ogni tratta arriveranno a tempo debito. Per ora ti basta dire di sì.'
+        'Notizie dalla cabina di pilotaggio: ci sposiamo! Non riuscivamo a scegliere una sola festa, così ne abbiamo prenotate tre, e su ogni tratta c’è un posto con il tuo nome.',
+        'Si decolla in Italia il 21 dicembre, con una festa per dare il via a tutto. Il 29 atterriamo ad Amsterdam per renderlo ufficiale: una cerimonia piccola, solo le promesse. Poi, nel 2027, l’ultima tratta ci porta in Namibia per un’ultima festa, in una data ancora da inserire nell’orario dei voli.',
+        'I dettagli d’imbarco di ogni tratta arriveranno più vicino alla partenza. Per ora ci basta un tuo sì.'
       ],
       itineraryTitle: 'Il tuo itinerario',
       pageOf: function (n, of) { return 'Pagina ' + n + ' di ' + of; },
@@ -275,7 +275,7 @@ window.INVITATION = (function () {
       checkinSend: 'Conferma il check-in',
       checkinUpdate: 'Aggiorna il check-in',
       checkinSending: 'Invio…',
-      checkinDone: 'Check-in fatto il {date}. Grazie — non vediamo l’ora di vederti.',
+      checkinDone: 'Check-in fatto il {date}. Grazie! Non vediamo l’ora di vederti.',
       checkinPick: 'Prima scegli “Sì, ci sarò” o “Mi dispiace, non posso” su almeno una carta d’imbarco.',
       checkinFailed: 'Non riusciamo a raggiungere il banco check-in. Controlla la connessione e riprova.',
       letterCheckin: 'Rispondi sulle carte d’imbarco',
@@ -298,7 +298,7 @@ window.INVITATION = (function () {
         },
         ams: {
           title: 'Le promesse',
-          blurb: 'Una cerimonia intima. Nessun ricevimento — solo noi due che lo diciamo ad alta voce, e tu lì ad ascoltare.',
+          blurb: 'Una cerimonia intima, senza ricevimento: solo noi due che lo diciamo ad alta voce, e tu lì ad ascoltare.',
           fromCity: 'Italia',
           toCity: 'Amsterdam',
           date: '29 DIC 2026',
