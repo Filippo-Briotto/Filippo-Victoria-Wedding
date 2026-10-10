@@ -908,7 +908,8 @@
 
     function api(path, opts) {
       opts = opts || {};
-      var headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Authorization': 'Bearer ' + token };
+      /* only headers every browser may send cross-site to GitHub */
+      var headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + token };
       if (opts.body) headers['Content-Type'] = 'application/json';
       return fetch(API + path, { method: opts.method || 'GET', headers: headers, cache: 'no-store',
         body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) {
