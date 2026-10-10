@@ -89,25 +89,28 @@ is. It works on a laptop or a phone, and the other person's changes show up with
 
 ### Where the list is kept
 
-In this repository, on a branch of its own called `guestlist-data`, as one file, `guests.json`.
-The repository is public, so that file is **encrypted** (AES-GCM, with a key derived from your
-passphrase by PBKDF2) before it leaves the browser. GitHub only ever holds the scrambled copy, and
-the passphrase never leaves your devices. The branch shares no history with the site, so saving the
-list never rebuilds Pages.
+In this repository, on a branch of its own called `guestlist-data`: `guests.json` is the list and
+`access.json` is the one GitHub token the page saves with. The repository is public, so both files
+are **encrypted** (AES-GCM, with a key derived from the passphrase by PBKDF2) before they leave the
+browser. GitHub only ever holds scrambled copies. The branch shares no history with the site, so
+saving the list never rebuilds Pages.
 
-**Choose the passphrase carefully and keep it written down.** It is chosen the first time the
-manifest is opened, and without it the list cannot be read by anyone, including you.
+**Choose the passphrase carefully and keep it written down.** Without it nobody can open the list,
+including you. Use a short sentence rather than a word: anyone who guessed it could open the list.
 
-### Signing in
+### Getting in
 
-Each of you enters a GitHub token and the passphrase once per device (untick *Remember on this
-device* on a borrowed one; **Lock this device** forgets both).
+**Filippo, once:** open the page and type a new passphrase. It says the list is not set up yet and
+asks for a GitHub token: [create a fine-grained token](https://github.com/settings/personal-access-tokens/new)
+with only the `invit` repository selected, **Contents: Read and write**, and an expiry after the last
+wedding date. Paste it, type the passphrase again, and pick your name.
 
-- **Filippo:** [create a fine-grained token](https://github.com/settings/personal-access-tokens/new)
-  with only the `invit` repository selected and **Contents: Read and write**.
-- **Victoria:** Filippo adds you under **Settings → Collaborators** on the repository. Accept the
-  invitation, then [create a classic token](https://github.com/settings/tokens/new?scopes=public_repo)
-  with only `public_repo` ticked. (Fine-grained tokens can only reach repositories you own.)
+**Victoria:** nothing to set up. Filippo taps **Sign-in link for Victoria** and sends her the link.
+She taps it and the list opens, and it stays open on that phone. The link contains the passphrase,
+so send it only to her. She can also just open the page and type the passphrase.
+
+**When the token expires,** the page says so. Filippo uses **Set up or renew access** on the sign-in
+screen with a new token; nobody else has to do anything.
 
 Changes save on their own after a short pause. If you both save at the same moment, the page takes
 the other copy, keeps the newest edit of each guest, and saves again, so working on different guests
