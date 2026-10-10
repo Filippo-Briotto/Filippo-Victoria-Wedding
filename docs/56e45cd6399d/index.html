@@ -773,10 +773,7 @@ window.INVITATION = (function () {
         '</div>'
       : '';
 
-    /* Two sheets of A4, not one very long one. A single crease across the
-       middle of a page four screens tall is not a fold anybody has ever made;
-       across the middle of an A4 page, which is what went into the envelope,
-       it is exactly right. Each sheet carries its own. */
+    /* Two sheets of A4, not one very long one. */
     return '' +
     '<article class="letter">' +
       '<div class="sheet paper">' +
@@ -798,7 +795,6 @@ window.INVITATION = (function () {
           '<h3>' + esc(t.itineraryTitle) + '</h3>' +
           '<ul class="itin">' + itinerary + '</ul>' +
         '</section>' +
-        '<span class="sheet__crease" aria-hidden="true"></span>' +
         '<span class="sheet__no">' + esc(t.pageOf(1, 2)) + '</span>' +
       '</div>' +
 
@@ -812,7 +808,6 @@ window.INVITATION = (function () {
         '</footer>' +
 
         '<p class="letter__small">' + esc(t.smallPrint) + '</p>' +
-        '<span class="sheet__crease" aria-hidden="true"></span>' +
         '<span class="sheet__no">' + esc(t.pageOf(2, 2)) + '</span>' +
       '</div>' +
     '</article>';
@@ -1135,7 +1130,6 @@ window.INVITATION = (function () {
 '.fold.is-open .fold__panel--bottom{transform:rotateX(0)}',
 '.fold__sheet{position:absolute;left:0;right:0;top:0}',
 '.fold__panel--bottom .fold__sheet{top:calc(var(--half) * -1)}',
-/* the shadow the folded half throws on the half beneath it, lifting as it opens */
 /* the shadow the folded-back half throws along the crease, lifting as it opens */
 '.fold__shade{position:absolute;left:0;right:0;top:0;height:var(--half);pointer-events:none;',
 '  z-index:4;background:linear-gradient(180deg,rgba(58,42,18,0) 48%,rgba(58,42,18,.07) 74%,rgba(58,42,18,.3));',
@@ -1146,18 +1140,6 @@ window.INVITATION = (function () {
 '  background:linear-gradient(180deg,rgba(58,42,18,.26),rgba(58,42,18,.04));',
 '  opacity:1;transition:opacity .6s ease-out}',
 '.fold.is-open .fold__panel--bottom::after{opacity:0}',
-/* paper remembers its crease -- across the middle of each A4 sheet, which is
-   where the fold that put it in the envelope actually fell */
-'.sheet__crease{position:absolute;left:0;right:0;top:50%;height:16px;margin-top:-9px;',
-'  pointer-events:none;z-index:2;background:linear-gradient(180deg,',
-'    rgba(112,88,48,0),rgba(112,88,48,.10) 46%,rgba(112,88,48,.15) 53%,',
-'    rgba(255,255,255,.5) 60%,rgba(255,255,255,0) 78%)}',
-/* Below about 600px the type can no longer be shrunk to keep an A4 page's worth
-   of words on an A4 page without making it unreadable, so the first sheet runs
-   longer than the paper it stands for. A crease across the middle of a sheet
-   that is no longer A4 is just a line through the middle of a paragraph, so
-   there is no crease there. */
-'@media (max-width:600px){.sheet__crease{display:none}}',
 
 /* ---------- the passes are dealt out ---------- */
 /* dropped, not listed: they overlap a little and sit at their own angles */

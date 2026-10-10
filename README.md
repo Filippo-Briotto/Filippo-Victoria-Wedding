@@ -210,12 +210,9 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   letter.
 - **The letter is two sheets of A4, not one long page.** A zero-width float whose top padding is
   a percentage of the sheet's own width holds each to the proportions of the paper it stands
-  for; a long personal note can push the second one taller, as a real second sheet would be. The
-  faint crease each sheet keeps sits across its own middle, where the fold that put it in the
-  envelope actually fell — a single crease down the middle of one very long page is not a fold
-  anybody has ever made. Below about 600px the type cannot shrink far enough to keep an A4
-  page's worth of words on an A4 page and still be readable, so the first sheet runs longer than
-  the paper and the crease is dropped rather than drawn through the middle of a paragraph.
+  for; a long personal note can push the second one taller, as a real second sheet would be.
+  Once the letter is open the sheets lie flat, with no crease drawn across them: a line through
+  the middle of the page read as a rendering glitch, not as a fold.
 - **It is meant to read as paper on a table, not as cards on a page.** Everything lies on a
   plain linen cloth inside a painted floral frame — woven, and a shade deeper than the
   stationery, so the paper stands apart from what it lies on; light falls across each sheet, the cut
