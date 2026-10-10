@@ -9,9 +9,9 @@ Three legs, one marriage:
 
 | | Route | When | |
 |---|---|---|---|
-| 1 | `HOM → AMS` Amsterdam | 28 December 2026 | The vows — intimate ceremony, no reception |
-| 2 | `AMS → WDH` Windhoek, Namibia | September 2027 | The traditional ceremony |
-| 3 | `WDH → ITA` Italy | To be announced | The dinner |
+| 1 | `HOM → ITA` Italy | 21 December 2026 | The party |
+| 2 | `ITA → AMS` Amsterdam | 29 December 2026 | The vows — intimate ceremony, no reception |
+| 3 | `AMS → WDH` Windhoek, Namibia | 2027, date to be announced | The traditional ceremony |
 
 Every leg flies **1D0**.
 
@@ -22,7 +22,7 @@ phones — WhatsApp and mail apps download it and then dead-end. A link opens in
 
 The invitation is published at an unguessable address:
 
-    https://senzmir.github.io/invit/56e45cd6399d/#<the guest>
+    https://filippo-briotto.github.io/Filippo-Victoria-Wedding/56e45cd6399d/#<the guest>
 
 Nothing links to it, it carries `noindex,nofollow`, and `docs/robots.txt` tells every crawler
 to stay away — so it is reachable only by someone you hand the address to (and by anyone they
@@ -70,7 +70,7 @@ saying *“this is the development copy”*, you have opened `index.html` by mis
 
 The **Passenger Manifest** is the shared guest list, on the same Pages site as the invitation:
 
-    https://senzmir.github.io/invit/ffaa3ad351b4/
+    https://filippo-briotto.github.io/Filippo-Victoria-Wedding/ffaa3ad351b4/
 
 It is in a folder of its own, so a guest looking at their link learns nothing about where the list
 is. It works on a laptop or a phone, and the other person's changes show up within about 20 seconds.
@@ -102,7 +102,7 @@ including you. Use a short sentence rather than a word: anyone who guessed it co
 
 **Filippo, once:** open the page and type a new passphrase. It says the list is not set up yet and
 asks for a GitHub token: [create a fine-grained token](https://github.com/settings/personal-access-tokens/new)
-with only the `invit` repository selected, **Contents: Read and write**, and an expiry after the last
+with only the `Filippo-Victoria-Wedding` repository selected, **Contents: Read and write**, and an expiry after the last
 wedding date. Paste it, type the passphrase again, and pick your name.
 
 **Victoria:** nothing to set up. Filippo taps **Sign-in link for Victoria** and sends her the link.
@@ -130,8 +130,8 @@ Everything factual lives in one place: the `LEGS` array at the top of
 ```js
 {
   id: 'ams',
-  from: 'HOM', to: 'AMS',
-  seat: '1A', gate: '28', tkt: '2812-2026',
+  from: 'ITA', to: 'AMS',
+  seat: '1B', gate: '29', tkt: '2912-2026',
   time: '',   // e.g. '15:00'
   venue: ''   // e.g. 'Stadhuis, Amstel 1'
 }

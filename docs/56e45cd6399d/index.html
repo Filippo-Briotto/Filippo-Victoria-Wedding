@@ -105,39 +105,39 @@ window.INVITATION = (function () {
      someone you hand the address to. The guest's name and note ride in the URL
      fragment (after the #), which browsers never send to the server -- GitHub
      sees a request for the page and nothing else. */
-  var SITE = 'https://senzmir.github.io/invit/56e45cd6399d/';
+  var SITE = 'https://filippo-briotto.github.io/Filippo-Victoria-Wedding/56e45cd6399d/';
 
   var FLIGHT = '1D0';
   var CLASS = 'First';
 
   var LEGS = [
     {
-      id: 'ams',
+      id: 'ita',
       from: 'HOM',
-      to: 'AMS',
+      to: 'ITA',
       seat: '1A',
-      gate: '28',
-      tkt: '2812-2026',
-      time: '',   // e.g. '15:00'  -- empty prints "full details to follow"
+      gate: '21',
+      tkt: '2112-2026',
+      time: '',   // e.g. '20:00'  -- empty prints "full details to follow"
+      venue: ''
+    },
+    {
+      id: 'ams',
+      from: 'ITA',
+      to: 'AMS',
+      seat: '1B',
+      gate: '29',
+      tkt: '2912-2026',
+      time: '',   // e.g. '15:00'
       venue: ''   // e.g. 'Stadhuis, Amstel 1'
     },
     {
       id: 'wdh',
       from: 'AMS',
       to: 'WDH',
-      seat: '1B',
-      gate: '09',
-      tkt: 'SEPT-2027',
-      time: '',
-      venue: ''
-    },
-    {
-      id: 'ita',
-      from: 'WDH',
-      to: 'ITA',
       seat: '1C',
       gate: '—',
-      tkt: 'TBA',
+      tkt: '2027-TBA',
       time: '',
       venue: ''
     }
@@ -170,7 +170,7 @@ window.INVITATION = (function () {
       greeting: function (name) { return 'Dear ' + name + ','; },
       letterBody: [
         'Your seat is reserved. We are getting married, and we would like you there — not once, but three times, on three legs of the same happy journey.',
-        'The first leg lands in Amsterdam on the 28th of December. It is a small, quiet ceremony: the vows and nothing else, no reception. The second leg is the big one — the traditional celebration in Namibia, in September. And somewhere between the two, Italy, for a long dinner and a longer evening.',
+        'The first leg lands in Italy on the 21st of December, for a party to set the whole thing off. Eight days later, on the 29th, we land in Amsterdam to get married: a small, quiet ceremony, the vows and nothing else. The last leg is the big one — the traditional celebration in Namibia, in 2027, on a date still to be announced.',
         'Full details for each leg will follow in good time. For now, all you need to do is say yes.'
       ],
       itineraryTitle: 'Your itinerary',
@@ -198,29 +198,29 @@ window.INVITATION = (function () {
       detailsToFollow: 'Full details to follow',
 
       legs: {
+        ita: {
+          title: 'The party',
+          blurb: 'Italy first. A party to set the whole thing off, four days before Christmas.',
+          fromCity: 'Wherever you are',
+          toCity: 'Italy',
+          date: '21 DEC 2026',
+          dateLong: '21 December 2026'
+        },
         ams: {
           title: 'The vows',
           blurb: 'An intimate ceremony. No reception — just the two of us saying it out loud, and you there to hear it.',
-          fromCity: 'Wherever you are',
+          fromCity: 'Italy',
           toCity: 'Amsterdam',
-          date: '28 DEC 2026',
-          dateLong: '28 December 2026'
+          date: '29 DEC 2026',
+          dateLong: '29 December 2026'
         },
         wdh: {
           title: 'The traditional ceremony',
-          blurb: 'The big one. Family, custom and celebration, the way it should be done, in Namibia.',
+          blurb: 'The big one. Family, custom and celebration, the way it should be done, in Namibia. Date to be announced.',
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
-          date: 'SEPT 2027',
-          dateLong: 'September 2027'
-        },
-        ita: {
-          title: 'The dinner',
-          blurb: 'A long table in Italy, and everything that comes with it. Date to be announced.',
-          fromCity: 'Windhoek',
-          toCity: 'Italy',
-          date: 'DATE TBA',
-          dateLong: 'To be announced'
+          date: '2027 · TBA',
+          dateLong: '2027, date to be announced'
         }
       }
     },
@@ -247,7 +247,7 @@ window.INVITATION = (function () {
       greeting: function (name) { return 'Ciao ' + name + ','; },
       letterBody: [
         'Il tuo posto è prenotato. Ci sposiamo, e ci farebbe piacere averti con noi — non una volta, ma tre, sulle tre tratte dello stesso viaggio felice.',
-        'La prima tratta atterra ad Amsterdam il 28 dicembre. È una cerimonia piccola e raccolta: solo le promesse, senza ricevimento. La seconda è quella grande — la celebrazione tradizionale in Namibia, a settembre. E da qualche parte tra le due, l’Italia, per una cena lunga e una serata ancora più lunga.',
+        'La prima tratta atterra in Italia il 21 dicembre, per una festa che dia il via a tutto. Otto giorni dopo, il 29, atterriamo ad Amsterdam per sposarci: una cerimonia piccola e raccolta, solo le promesse. L’ultima tratta è quella grande — la celebrazione tradizionale in Namibia, nel 2027, in una data ancora da annunciare.',
         'Tutti i dettagli di ogni tratta arriveranno a tempo debito. Per ora ti basta dire di sì.'
       ],
       itineraryTitle: 'Il tuo itinerario',
@@ -275,29 +275,29 @@ window.INVITATION = (function () {
       detailsToFollow: 'Dettagli a seguire',
 
       legs: {
+        ita: {
+          title: 'La festa',
+          blurb: 'Prima l’Italia. Una festa per dare il via a tutto, quattro giorni prima di Natale.',
+          fromCity: 'Ovunque tu sia',
+          toCity: 'Italia',
+          date: '21 DIC 2026',
+          dateLong: '21 dicembre 2026'
+        },
         ams: {
           title: 'Le promesse',
           blurb: 'Una cerimonia intima. Nessun ricevimento — solo noi due che lo diciamo ad alta voce, e tu lì ad ascoltare.',
-          fromCity: 'Ovunque tu sia',
+          fromCity: 'Italia',
           toCity: 'Amsterdam',
-          date: '28 DIC 2026',
-          dateLong: '28 dicembre 2026'
+          date: '29 DIC 2026',
+          dateLong: '29 dicembre 2026'
         },
         wdh: {
           title: 'La cerimonia tradizionale',
-          blurb: 'Quella grande. Famiglia, tradizione e festa, come si deve, in Namibia.',
+          blurb: 'Quella grande. Famiglia, tradizione e festa, come si deve, in Namibia. Data da annunciare.',
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
-          date: 'SETT 2027',
-          dateLong: 'Settembre 2027'
-        },
-        ita: {
-          title: 'La cena',
-          blurb: 'Una tavolata lunga in Italia, e tutto quello che ne consegue. Data da annunciare.',
-          fromCity: 'Windhoek',
-          toCity: 'Italia',
-          date: 'DATA TBA',
-          dateLong: 'Da annunciare'
+          date: '2027 · TBA',
+          dateLong: '2027, data da annunciare'
         }
       }
     }
