@@ -86,7 +86,6 @@ window.INVITATION = (function () {
       brand: 'Briotto Family Airline',
       strapline: 'Wedding invitation · First class service',
 
-      envelopeHint: 'Tap to open',
       envelopeVia: 'By air mail · Par avion',
       envelopeVia2: 'By air mail',
       envelopePassenger: 'Passenger',
@@ -96,6 +95,18 @@ window.INVITATION = (function () {
       tabTickets: 'The boarding passes',
       backToEnvelope: 'Back to the envelope',
       printTickets: 'Print the tickets',
+
+      /* Plain, labelled buttons for getting around. The paper can still be
+         clicked, but nobody should have to guess that it can. */
+      openHint: 'Inside: a letter and your boarding passes. Choose one.',
+      readLetter: 'Read the letter',
+      seeTickets: 'See the boarding passes',
+      navLabel: 'Parts of the invitation',
+      navEnvelope: 'Envelope',
+      navLetter: 'Letter',
+      navTickets: 'Boarding passes',
+      nextTickets: 'Next: your boarding passes',
+      backLetter: 'Back to the letter',
 
       bookingTitle: 'Booking confirmation',
       refLabel: 'Reference',
@@ -163,7 +174,6 @@ window.INVITATION = (function () {
       brand: 'Briotto Family Airline',
       strapline: 'Invito di nozze · Servizio di prima classe',
 
-      envelopeHint: 'Tocca per aprire',
       envelopeVia: 'Posta aerea · Par avion',
       envelopeVia2: 'Posta aerea',
       envelopePassenger: 'Passeggero',
@@ -173,6 +183,16 @@ window.INVITATION = (function () {
       tabTickets: 'Le carte d’imbarco',
       backToEnvelope: 'Torna alla busta',
       printTickets: 'Stampa i biglietti',
+
+      openHint: 'Dentro: una lettera e le tue carte d’imbarco. Scegli quale aprire.',
+      readLetter: 'Leggi la lettera',
+      seeTickets: 'Vedi le carte d’imbarco',
+      navLabel: 'Le parti dell’invito',
+      navEnvelope: 'Busta',
+      navLetter: 'Lettera',
+      navTickets: 'Carte d’imbarco',
+      nextTickets: 'Avanti: le tue carte d’imbarco',
+      backLetter: 'Torna alla lettera',
 
       bookingTitle: 'Conferma di prenotazione',
       refLabel: 'Riferimento',
