@@ -108,6 +108,7 @@ window.INVITATION = (function () {
       letterBody: [
         'Your seat is reserved. We are getting married, and we would like you there — not once, but three times, on three legs of the same happy journey.',
         'The first leg lands in Italy on the 21st of December, for a party to set the whole thing off. Eight days later, on the 29th, we land in Amsterdam to get married: a small, quiet ceremony, the vows and nothing else. The last leg is the big one — the traditional celebration in Namibia, in 2027, on a date still to be announced.',
+        'No gifts, please — the hold is already full. If you would like to give something, a little towards the journey is welcome, but your love is more than enough.',
         'Full details for each leg will follow in good time. For now, all you need to do is say yes.'
       ],
       itineraryTitle: 'Your itinerary',
@@ -206,6 +207,7 @@ window.INVITATION = (function () {
       letterBody: [
         'Il tuo posto è prenotato. Ci sposiamo, e ci farebbe piacere averti con noi — non una volta, ma tre, sulle tre tratte dello stesso viaggio felice.',
         'La prima tratta atterra in Italia il 21 dicembre, per una festa che dia il via a tutto. Otto giorni dopo, il 29, atterriamo ad Amsterdam per sposarci: una cerimonia piccola e raccolta, solo le promesse. L’ultima tratta è quella grande — la celebrazione tradizionale in Namibia, nel 2027, in una data ancora da annunciare.',
+        'Niente regali, per favore — la stiva è già piena. Se vuoi farci un pensiero, un contributo per il viaggio è benvenuto, ma il tuo affetto basta e avanza.',
         'Tutti i dettagli di ogni tratta arriveranno a tempo debito. Per ora ti basta dire di sì.'
       ],
       itineraryTitle: 'Il tuo itinerario',
