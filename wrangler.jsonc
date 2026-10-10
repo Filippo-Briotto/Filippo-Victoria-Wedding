@@ -1,0 +1,10 @@
+// Cloudflare Workers settings: publish the docs/ folder as a plain static site.
+// Same files GitHub Pages serves, at a second address that is reachable from
+// networks that cannot reach github.io (Namibia, for one).
+{
+  "name": "filippo-victoria-wedding",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./docs"
+  }
+}
