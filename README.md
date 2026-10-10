@@ -217,7 +217,8 @@ just below, in both languages.
 | `assets/template.js` | the invitation document itself: markup, styles, the envelope |
 | `assets/fonts.js` | Cormorant Garamond + Courier Prime, base64'd (generated) |
 | `assets/stamp/` | drop artwork here to replace the stamp's drawn flowers |
-| `assets/stamp-art.js` | that picture, base64'd (generated) |
+| `assets/letter/` | the picture at the foot of the letter's second sheet |
+| `assets/stamp-art.js` | the stamp picture, its watermark copy and the letter's picture, base64'd (generated) |
 | `assets/fonts/` | the source `.woff2` files and their SIL Open Font Licences |
 | `example-invitation.html` | a minted sample, for looking at and test-printing |
 | `tools/build-fonts.py` | regenerates `assets/fonts.js` from `assets/fonts/` |
@@ -246,6 +247,20 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   ground and the stamp stock are the same colour with no seam. Delete
   `assets/stamp/couple.png` and rerun the second to fall back to the drawn posy, whose colours
   are the `BLOOM` block at the top of `assets/invitation.js`.
+- **The same drawing is watermarked across the first sheet of the letter**, faintly, under the
+  writing. `tools/build-stamp-art.py` makes that copy too: it lifts the drawing's cream ground to
+  pure white and saves it as a small JPEG, and the letter multiplies it onto the paper, so only
+  the lines land and the paper grain shows through them. How strong it is is the `opacity` on
+  `.sheet--watermark::after` in [`assets/template.js`](assets/template.js). With no picture in
+  `assets/stamp/`, the sheet is plain.
+- **The second sheet ends with a watercolour of the two of you**, under the sign-off, shown as
+  it was painted: not blended into the paper, so its colours stay its own. It is
+  `assets/letter/picture.webp` (a `.jpg` or `.png` of the same name works too).
+  `tools/build-stamp-art.py` takes only the cream it was painted on away, making it transparent so
+  the letter's paper shows around the paint, and saves it as a WebP with transparency.
+  It takes whatever room the writing leaves, so a long personal note makes it smaller instead of
+  making the sheet taller (in browsers too old for that, it keeps a fixed height and a long note
+  makes the sheet taller). Delete the file and rerun the script to go without.
 - **The envelope is the same design at every size.** Everything inside it — type, stamp,
   cancellation, wax seal — is sized off one `--w` custom property set to the envelope's own
   width, so a phone gets the same composition as a desktop, just smaller, rather than a
