@@ -73,7 +73,7 @@ window.INVITATION = (function () {
       from: 'AMS',
       to: 'WDH',
       seat: '1C',
-      gate: '—',
+      gate: 'TBA',
       tkt: '2027-TBA',
       time: '',
       venue: ''
