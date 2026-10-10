@@ -160,7 +160,6 @@ window.INVITATION = (function () {
       brand: 'Briotto Family Airline',
       strapline: 'Wedding invitation · First class service',
 
-      envelopeHint: 'Tap to open',
       envelopeVia: 'By air mail · Par avion',
       envelopeVia2: 'By air mail',
       envelopePassenger: 'Passenger',
@@ -170,6 +169,18 @@ window.INVITATION = (function () {
       tabTickets: 'The boarding passes',
       backToEnvelope: 'Back to the envelope',
       printTickets: 'Print the tickets',
+
+      /* Plain, labelled buttons for getting around. The paper can still be
+         clicked, but nobody should have to guess that it can. */
+      openHint: 'Inside: a letter and your boarding passes. Choose one.',
+      readLetter: 'Read the letter',
+      seeTickets: 'See the boarding passes',
+      navLabel: 'Parts of the invitation',
+      navEnvelope: 'Envelope',
+      navLetter: 'Letter',
+      navTickets: 'Boarding passes',
+      nextTickets: 'Next: your boarding passes',
+      backLetter: 'Back to the letter',
 
       bookingTitle: 'Booking confirmation',
       refLabel: 'Reference',
@@ -258,7 +269,6 @@ window.INVITATION = (function () {
       brand: 'Briotto Family Airline',
       strapline: 'Invito di nozze · Servizio di prima classe',
 
-      envelopeHint: 'Tocca per aprire',
       envelopeVia: 'Posta aerea · Par avion',
       envelopeVia2: 'Posta aerea',
       envelopePassenger: 'Passeggero',
@@ -268,6 +278,16 @@ window.INVITATION = (function () {
       tabTickets: 'Le carte d’imbarco',
       backToEnvelope: 'Torna alla busta',
       printTickets: 'Stampa i biglietti',
+
+      openHint: 'Dentro: una lettera e le tue carte d’imbarco. Scegli quale aprire.',
+      readLetter: 'Leggi la lettera',
+      seeTickets: 'Vedi le carte d’imbarco',
+      navLabel: 'Le parti dell’invito',
+      navEnvelope: 'Busta',
+      navLetter: 'Lettera',
+      navTickets: 'Carte d’imbarco',
+      nextTickets: 'Avanti: le tue carte d’imbarco',
+      backLetter: 'Torna alla lettera',
 
       bookingTitle: 'Conferma di prenotazione',
       refLabel: 'Riferimento',
@@ -735,6 +755,29 @@ window.INVITATION = (function () {
       '</svg>';
   }
 
+  /* Line icons for the buttons that get you around. A word alone is easy to
+     miss on a page full of type; a picture of the thing next to it is not. */
+  var ICONS = {
+    envelope: '<rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M3.6 7 12 13l8.4-6"/>',
+    letter: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 11h7M9 14h7M9 17h5"/>',
+    tickets: '<path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M15.5 8v8" stroke-dasharray="1.6 1.8"/>',
+    next: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    back: '<path d="M19 12H5M11 6l-6 6 6 6"/>'
+  };
+
+  function icon(name) {
+    return '<svg class="icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"' +
+      ' stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      ICONS[name] + '</svg>';
+  }
+
+  /* A real button, with words on it, for each way you can go from here. */
+  function goButton(stage, label, iconName, extraClass, iconAfter) {
+    return '<button type="button" class="go' + (extraClass ? ' ' + extraClass : '') + '" data-stage-to="' + stage + '">' +
+      (iconAfter ? '' : icon(iconName)) + '<span>' + esc(label) + '</span>' + (iconAfter ? icon(iconName) : '') +
+    '</button>';
+  }
+
   /* Small per-pass irregularities. Real tickets never land dead square, and
      three identical rectangles read as a table rather than as paper. */
   var TILTS = [
@@ -1117,10 +1160,6 @@ window.INVITATION = (function () {
 '  cursor:pointer;',
 '  border-radius:4px;font:inherit;color:transparent}',
 '.env-open:focus-visible{outline:2px solid #8a5a34;outline-offset:5px}',
-'.env-hint{position:absolute;left:0;right:0;bottom:-32px;margin:0;text-align:center;color:var(--on-cloth);',
-'  font-family:var(--mono);font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;',
-'  animation:breathe 3.4s ease-in-out infinite;transition:opacity .4s}',
-'@keyframes breathe{0%,100%{opacity:.38}50%{opacity:.9}}',
 
 /* the quieter envelope: no stripes, a hairline rule, teal wax */
 /* the quieter envelope: no stripes, just a hairline plate rule */
@@ -1187,7 +1226,6 @@ window.INVITATION = (function () {
 '  transform:translateY(-96px) rotate(-13deg);outline:none}',
 'body[data-stage="open"] .slip:focus-visible .slip__inner{outline:2px solid var(--blue);outline-offset:2px}',
 'body[data-stage="open"] .env-open,body[data-stage="letter"] .env-open,body[data-stage="tickets"] .env-open{display:none}',
-'body:not([data-stage="sealed"]) .env-hint{opacity:0;animation:none}',
 /* the pulled-out slip keeps travelling upward and hands over to the real thing */
 /* The pull happens in two beats. First the paper is drawn right up out of the
    envelope -- slowly at the start, the way paper drags against paper -- while the
@@ -1215,10 +1253,50 @@ window.INVITATION = (function () {
 'body[data-stage="letter"] .env-back-btn,body[data-stage="tickets"] .env-back-btn{display:block}',
 /* this line lands on the flap of the emptied envelope, not on the cloth, so it
    stays in ink -- with a little of the paper's own light behind it */
-'.putback{margin:2px 0 0;text-align:center;color:#5e4b39;font-family:var(--mono);font-size:9.5px;',
+'.putback{margin:4px 0 0;text-align:center;color:#5e4b39;font-family:var(--mono);font-size:11.5px;',
 '  text-shadow:0 1px 0 rgba(255,246,232,.6);',
-'  letter-spacing:.24em;text-transform:uppercase;opacity:0;transition:opacity .5s .5s;pointer-events:none}',
-'body[data-stage="letter"] .putback,body[data-stage="tickets"] .putback{opacity:.55}',
+'  letter-spacing:.14em;text-transform:uppercase;opacity:0;transition:opacity .5s .5s;pointer-events:none}',
+'body[data-stage="letter"] .putback,body[data-stage="tickets"] .putback{opacity:.85}',
+
+/* ---------- getting around ----------
+   The paper is still the way in, but nobody should have to guess that. Every
+   step says in words what you can do next, on buttons big enough to hit
+   first time, and once something is out of the envelope a bar along the bottom
+   of the screen takes you to any part of it from anywhere. */
+'.go{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;',
+'  padding:11px 26px;border:1.5px solid var(--blue);border-radius:999px;background:var(--blue);',
+'  color:#fdf9f0;font:inherit;font-size:20px;font-weight:600;line-height:1.15;cursor:pointer;',
+'  box-shadow:0 2px 3px -1px rgba(18,58,77,.35),0 12px 20px -12px rgba(18,58,77,.5);',
+'  transition:background .2s,transform .15s}',
+'.go:hover{background:#0b2a39}',
+'.go:active{transform:translateY(1px)}',
+'.go:focus-visible{outline:3px solid #8a5a34;outline-offset:3px}',
+'.go .icon{flex:none;width:24px;height:24px}',
+'.guide{width:min(600px,100%);margin:clamp(26px,6vw,40px) 0 0;text-align:center}',
+'.guide__step{display:none;flex-direction:column;align-items:center;gap:16px}',
+'body[data-stage="sealed"] .guide__step--sealed{display:flex}',
+/* waits for the flap to turn and the paper to come up before it speaks */
+'body[data-stage="open"] .guide__step--open{display:flex;animation:fadein .5s ease .8s both}',
+'.guide__say{margin:0;max-width:26ch;font-size:20px;line-height:1.35;color:#4a3a2c}',
+'.guide__row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}',
+'body[data-stage="letter"] .guide,body[data-stage="tickets"] .guide{display:none}',
+'.nav{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:20;',
+'  display:none;gap:6px;width:min(540px,calc(100% - 20px));padding:6px;transform:translateX(-50%);',
+'  border:1px solid rgba(120,100,64,.32);border-radius:18px;',
+'  background:var(--sheen),var(--paper-tex) 0 0/216px 216px repeat,#fcf7eb;',
+'  box-shadow:0 2px 4px -1px rgba(60,40,20,.25),0 16px 32px -12px rgba(60,40,20,.5)}',
+'body[data-stage="letter"] .nav,body[data-stage="tickets"] .nav{display:flex}',
+'body[data-stage="letter"],body[data-stage="tickets"]{',
+'  padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}',
+'.nav__btn{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;',
+'  justify-content:center;gap:3px;min-height:62px;padding:7px 4px;border:0;border-radius:13px;',
+'  background:none;color:var(--blue);font:inherit;font-size:17px;font-weight:600;line-height:1.1;',
+'  text-align:center;cursor:pointer;transition:background .2s}',
+'.nav__btn:hover{background:rgba(18,58,77,.08)}',
+'.nav__btn:focus-visible{outline:3px solid #8a5a34;outline-offset:1px}',
+'.nav__btn[aria-current="page"]{background:var(--blue);color:#fdf9f0}',
+'.panel-end{display:flex;justify-content:center;margin:clamp(26px,5vw,38px) 0 0}',
+'.panel--tickets .panel-end{animation:fadein .5s ease .7s both}',
 
 /* ---------- what comes out ---------- */
 '.panel{position:relative;z-index:1;width:min(760px,100%);margin-top:clamp(16px,3vw,30px)}',
@@ -1530,7 +1608,7 @@ window.INVITATION = (function () {
 /* ---------- print: the passes, and nothing else ---------- */
 '@media print{',
 '  body{background:#fff!important;background-image:none!important;padding:0;display:block}',
-'  .env-wrap,.putback,.pagefoot,.tearline,.tickets__intro,.panel--letter,',
+'  .env-wrap,.putback,.pagefoot,.tearline,.tickets__intro,.panel--letter,.guide,.nav,.panel-end,',
 '  .garden,.checkin,.desk{display:none!important}',
 '  .panel--tickets,.panel--tickets[hidden]{display:block!important;width:100%;margin:0;animation:none}',
 /* on paper they lie square and separate again: the deal animation sets a
@@ -1595,7 +1673,8 @@ window.INVITATION = (function () {
       '    fold.appendChild(shade);',
       '',
       '    realLetter.style.display="none";',
-      '    letterPanel.appendChild(fold);',
+      '    /* in the letter\'s own place, above the button that follows it */',
+      '    letterPanel.insertBefore(fold,realLetter.nextSibling);',
       '',
       '    /* one frame folded, so the eye sees the packet before it opens */',
       '    /* it stays folded while it clears the envelope, then opens */',
@@ -1615,6 +1694,7 @@ window.INVITATION = (function () {
       '    body.setAttribute("data-stage",stage);',
       '    letterPanel.hidden=stage!=="letter";',
       '    ticketPanel.hidden=stage!=="tickets";',
+      '    markCurrent(stage);',
       '    if(stage==="letter")unfold();',
       '    if(stage==="tickets"){',
       '      /* restart the deal so the passes always come out of the envelope */',
@@ -1624,8 +1704,22 @@ window.INVITATION = (function () {
       '    }',
       '  }',
       '',
+      '  var navBtns=document.querySelectorAll(".nav__btn");',
+      '  function markCurrent(stage){',
+      '    Array.prototype.forEach.call(navBtns,function(el){',
+      '      if(el.getAttribute("data-stage-to")===stage)el.setAttribute("aria-current","page");',
+      '      else el.removeAttribute("aria-current");',
+      '    });',
+      '  }',
+      '',
       '  function setStage(stage){',
       '    clearTimers();',
+      '    var from=body.getAttribute("data-stage");',
+      '    if((stage==="letter"||stage==="tickets")&&(from==="letter"||from==="tickets")){',
+      '      /* already out of the envelope: just swap one for the other */',
+      '      show(stage);window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});',
+      '      return;',
+      '    }',
       '    if(stage==="letter"||stage==="tickets"){',
       '      /* beat one: draw the paper out while the envelope is still full size */',
       '      body.setAttribute("data-pull",stage);',
@@ -1639,6 +1733,7 @@ window.INVITATION = (function () {
       '    var panel=was==="letter"?letterPanel:ticketPanel;',
       '    body.removeAttribute("data-pull");',
       '    body.setAttribute("data-stage",stage);',
+      '    markCurrent(stage);',
       '    function tidy(){',
       '      var fold=letterPanel.querySelector(".fold");',
       '      if(fold)fold.remove();',
@@ -1652,8 +1747,21 @@ window.INVITATION = (function () {
       '    after(430,tidy);',
       '  }',
       '',
+      '  /* Each step is a page in the browser\'s history, so the phone\'s own Back',
+      '     button goes back a step -- letter, open envelope, sealed envelope --',
+      '     instead of leaving the invitation altogether. */',
+      '  function go(stage){',
+      '    if(stage===body.getAttribute("data-stage"))return;',
+      '    try{history.pushState({stage:stage},"");}catch(e){}',
+      '    setStage(stage);',
+      '  }',
+      '  window.addEventListener("popstate",function(e){',
+      '    var stage=(e.state&&e.state.stage)||"sealed";',
+      '    if(stage!==body.getAttribute("data-stage"))setStage(stage);',
+      '  });',
+      '',
       '  Array.prototype.forEach.call(document.querySelectorAll("[data-stage-to]"),function(el){',
-      '    el.addEventListener("click",function(){setStage(el.getAttribute("data-stage-to"));});',
+      '    el.addEventListener("click",function(){go(el.getAttribute("data-stage-to"));});',
       '  });',
       '',
       '  var printBtn=document.getElementById("btn-print");',
@@ -1662,7 +1770,7 @@ window.INVITATION = (function () {
       '  document.addEventListener("keydown",function(e){',
       '    if(e.key!=="Escape")return;',
       '    var stage=body.getAttribute("data-stage");',
-      '    if(stage==="letter"||stage==="tickets")setStage("open");',
+      '    if(stage==="letter"||stage==="tickets")go("open");',
       '  });',
       '',
       '  setStage("sealed");',
@@ -1850,7 +1958,7 @@ window.INVITATION = (function () {
 '<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">\n' +
 '<meta name="referrer" content="no-referrer">\n' +
 '<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}) + '\n</style>\n' +
-'<noscript><style>.env-wrap{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
+'<noscript><style>.env-wrap,.guide,.nav,.panel-end{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
 '</head>\n' +
 '<body data-stage="sealed" data-envelope="' + envelope + '">\n' +
 
@@ -1884,19 +1992,40 @@ window.INVITATION = (function () {
     '<div class="env-seal">' + I.waxSealSvg(I.COUPLE.initials) + '</div>' +
     '<button type="button" class="env-open" data-stage-to="open">' + esc(t.envelopeOpenLabel) + '</button>' +
     '<button type="button" class="env-back-btn" data-stage-to="open">' + esc(t.backToEnvelope) + '</button>' +
-    '<p class="env-hint">' + esc(t.envelopeHint) + '</p>' +
   '</div>' +
 '</div>\n' +
 '<p class="putback">' + esc(t.backToEnvelope) + '</p>\n' +
+'<div class="guide">' +
+  '<div class="guide__step guide__step--sealed">' +
+    goButton('open', t.envelopeOpenLabel, 'envelope') +
+  '</div>' +
+  '<div class="guide__step guide__step--open">' +
+    '<p class="guide__say">' + esc(t.openHint) + '</p>' +
+    '<div class="guide__row">' +
+      goButton('letter', t.readLetter, 'letter') +
+      goButton('tickets', t.seeTickets, 'tickets') +
+    '</div>' +
+  '</div>' +
+'</div>\n' +
 
 '<section class="panel panel--letter" id="panel-letter" hidden>' +
   letter(t, names, note, withCheckin) +
+  '<p class="panel-end">' + goButton('tickets', t.nextTickets, 'next', '', true) + '</p>' +
 '</section>\n' +
 '<section class="panel panel--tickets" id="panel-tickets" hidden>' +
   '<p class="tearline"><button type="button" class="tearoff" id="btn-print">' + esc(t.printTickets) + '</button></p>' +
   passes +
   (withCheckin ? desk(t) : '') +
+  '<p class="panel-end">' + goButton('letter', t.backLetter, 'back') + '</p>' +
 '</section>\n' +
+'<nav class="nav" aria-label="' + esc(t.navLabel) + '">' +
+  ['open', 'letter', 'tickets'].map(function (stage) {
+    var label = { open: t.navEnvelope, letter: t.navLetter, tickets: t.navTickets }[stage];
+    var name = stage === 'open' ? 'envelope' : stage;
+    return '<button type="button" class="nav__btn" data-stage-to="' + stage + '">' +
+      icon(name) + '<span>' + esc(label) + '</span></button>';
+  }).join('') +
+'</nav>\n' +
 
 '<p class="pagefoot">' + esc(t.tagline) + '</p>\n' +
 '<script>\n' + script() + '\n<\/script>\n' +

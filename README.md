@@ -245,12 +245,18 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   `'quiet'`: plain ivory with a hairline plate rule, a drawn flap and a red wax seal with the
   monogram pressed into it. Set it to `'airmail'` for the striped par avion border and its
   little blue label instead. Everything else is identical.
-- **Interaction is physical, not chrome.** There is no navigation bar. Click the envelope to
-  break the seal: the flap turns over on its fold, then the letter rises out of the middle
-  with the boarding passes lying across it at an angle, their corner sticking out. Pull out
-  whichever you want by clicking the paper itself.
-  Click the shrunken envelope at the top to put things back; `Esc` does the same, and the paper
-  slides back in behind the envelope as it grows.
+- **The paper is the interface, and plain buttons say so.** Click the envelope to break the
+  seal: the flap turns over on its fold, then the letter rises out of the middle with the
+  boarding passes lying across it at an angle, their corner sticking out. Pull out whichever you
+  want by clicking the paper itself. Click the shrunken envelope at the top to put things back;
+  `Esc` does the same, and the paper slides back in behind the envelope as it grows.
+  None of that is obvious to everyone — least of all to older guests — so every step also has
+  big labelled buttons: **Open the envelope** under the sealed envelope, **Read the letter** and
+  **See the boarding passes** once it is open, and, once something is out, a bar along the bottom
+  of the screen (**Envelope · Letter · Boarding passes**) that goes to any part from anywhere.
+  The letter ends with **Next: your boarding passes**, the passes with **Back to the letter**.
+  Each step is also a step in the browser's history, so a phone's own Back button goes back
+  through the invitation instead of closing it. None of the buttons print.
 - **The letter arrives folded and opens on its crease.** The fold is real: two clipped copies of
   the letter, hinged along the middle, with the bottom half folded back behind the top one. It
   swings down, the shadow along the crease lifts, and then the scaffold is thrown away and the
