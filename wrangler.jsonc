@@ -1,10 +1,21 @@
 // Cloudflare Workers settings: publish the docs/ folder as a plain static site.
 // Same files GitHub Pages serves, at a second address that is reachable from
 // networks that cannot reach github.io (Namibia, for one).
+//
+// In front of it, a small worker (worker/index.js) answers under /api/ and
+// keeps the guests' check-ins in a Durable Object. Cloudflare creates that
+// storage by itself on deploy; there is nothing to set up in the dashboard.
 {
   "name": "filippo-victoria-wedding",
+  "main": "worker/index.js",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./docs"
-  }
+    "directory": "./docs",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "CHECKINS", "class_name": "CheckIns" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["CheckIns"] }]
 }

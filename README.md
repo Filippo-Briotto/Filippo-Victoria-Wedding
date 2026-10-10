@@ -35,6 +35,7 @@ to stay away — so it is reachable only by someone you hand the address to (and
 forward it to; it is unfindable, not secret). The guest's name and note ride in the fragment,
 the part after the `#`, which browsers **never send to the server** — so they exist only in the
 link itself and in the reader's browser. GitHub sees a request for the page and nothing more.
+The one thing that does leave the browser is a guest's check-in, when they send it (below).
 
 ### One-time setup
 
@@ -63,14 +64,58 @@ run `node tools/build-minter.js` to rebuild `minter.html`.)
 
 The file buttons underneath still work if you ever want a standalone copy — **Download**, or
 **Share the file…** on a phone — but a file is the awkward way to send this to a guest. That single file is the whole
-   invitation — fonts and artwork travel inside it, it makes no network requests, and it works
-   as an email attachment on a plane. Roughly 170 KB.
+   invitation — fonts and artwork travel inside it, the only network request it makes is the
+   check-in, and it opens as an email attachment on a plane. Roughly 170 KB.
 
 If your browser blocks the download (Safari sometimes does from `file://`), use **Share**, **Open
 in a new tab** and save from there, or **Copy the HTML** and paste it into a file yourself.
 
 `minter.html` needs nothing beside it — no `assets/` folder, no network. If you ever see a banner
 saying *“this is the development copy”*, you have opened `index.html` by mistake.
+
+## Checking in (RSVP)
+
+Guests answer on the boarding passes themselves. Each pass asks *Will you be on this flight?*
+with **Check in** and **Can't make it**. Under the passes is a **check-in desk** where they say
+how many are coming on their invitation, can leave you a message, and press **Confirm
+check-in**. Once the answer reaches the desk, a rubber stamp lands across each pass: *Checked
+in* or *Not travelling*. The letter has a button pointing at the passes, and guests can come
+back and change their answers at any time, from any device.
+
+The answers turn up in the Passenger Manifest within about half a minute. Each guest's answers
+for the three legs and their head count are filled in for you, and their message shows on their
+row and in their drawer. If you change an answer by hand afterwards, yours stands until they
+check in again.
+
+How it fits together:
+
+- **Where check-ins go.** [`worker/index.js`](worker/index.js) is a small Cloudflare Worker in
+  front of the static site. It answers only under `/api/` and keeps the check-ins in a Durable
+  Object. Cloudflare creates that storage by itself on the next deploy, from
+  [`wrangler.jsonc`](wrangler.jsonc), so there is nothing to set up in the dashboard. Invitations
+  always reply to the Cloudflare address, so the GitHub Pages copy and a downloaded file work too.
+- **How a check-in finds its guest.** A check-in is filed under a fingerprint (a SHA-256 hash) of
+  the guest's invitation link. The manifest works out the same fingerprint from the link it sent
+  and puts the two together, so links sent before check-in existed still match. The link itself,
+  and the note inside it, are never sent anywhere. New links from the manifest also carry the
+  guest's id (`k`), so nobody can work a guest's check-in out from their name alone. Links that
+  already went out keep their shape and do not turn into *changed since sending*.
+- **Check-ins it cannot match** (from a link made on the minting desk, say, or one sent before
+  a name was changed, unless a single guest has that exact name) appear in a yellow box at the
+  top of the manifest. Pick who it is, or ignore it. The example invitation in the repo can check
+  in too, under a made-up link, so anything sent from it ends up in that box.
+- **Who can read them.** Anyone can send a check-in, but only the manifest can read the list. The
+  worker asks GitHub whether the manifest's own token can push to the repository, so there is no
+  second password. When the token is renewed, check-ins keep working. A guest's invitation can
+  read back that guest's own answers, but never their message.
+- **What Cloudflare holds:** the name printed on the invitation, the three answers, the head count
+  and the message, unencrypted, in your Cloudflare account. It is not public, unlike the GitHub
+  repository, which is why the guest list itself stays encrypted and this does not need to be.
+
+To try the desk locally: `npx wrangler dev`, then open
+`http://localhost:8787/56e45cd6399d/#…` with a guest's fragment. The invitation still talks to the
+real address, so point `CHECKIN_API` in [`assets/invitation.js`](assets/invitation.js) at the local
+one while you test.
 
 ## The guest list
 
@@ -92,7 +137,8 @@ is. It works on a laptop or a phone, and the other person's changes show up with
   text**, in English and Italian). **WhatsApp** opens a chat with it filled in.
 - **Mark as sent** records when, how, and which of you sent it. If you change the name, note or
   language afterwards, the row says *changed since*, because the guest still has the old link.
-- **RSVP** per leg (Amsterdam, Windhoek, Italy), **Our notes** for things the guest never sees,
+- **RSVP** per leg (Amsterdam, Windhoek, Italy), filled in by guests' own check-ins and
+  editable by hand, **Our notes** for things the guest never sees,
   and **Export CSV** for a spreadsheet copy.
 
 ### Where the list is kept
@@ -156,6 +202,8 @@ just below, in both languages.
 | `minter.html` | **the minting desk, one self-contained file** — this is the one to use |
 | `index.html` | the same desk, loading its scripts from `assets/` — work on this one |
 | `manifest/src.html` | the shared guest list page; built into `docs/ffaa3ad351b4/` |
+| `worker/index.js` | the check-in desk: the Cloudflare Worker that keeps guests' answers |
+| `wrangler.jsonc` | Cloudflare settings: the static site, the worker and its storage |
 | `assets/invitation.js` | **the wedding facts**, both languages of copy, the drawn marks |
 | `assets/template.js` | the invitation document itself: markup, styles, the envelope |
 | `assets/fonts.js` | Cormorant Garamond + Courier Prime, base64'd (generated) |
@@ -216,12 +264,9 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   letter.
 - **The letter is two sheets of A4, not one long page.** A zero-width float whose top padding is
   a percentage of the sheet's own width holds each to the proportions of the paper it stands
-  for; a long personal note can push the second one taller, as a real second sheet would be. The
-  faint crease each sheet keeps sits across its own middle, where the fold that put it in the
-  envelope actually fell — a single crease down the middle of one very long page is not a fold
-  anybody has ever made. Below about 600px the type cannot shrink far enough to keep an A4
-  page's worth of words on an A4 page and still be readable, so the first sheet runs longer than
-  the paper and the crease is dropped rather than drawn through the middle of a paragraph.
+  for; a long personal note can push the second one taller, as a real second sheet would be.
+  Once the letter is open the sheets lie flat, with no crease drawn across them: a line through
+  the middle of the page read as a rendering glitch, not as a fold.
 - **It is meant to read as paper on a table, not as cards on a page.** Everything lies on a
   plain linen cloth inside a painted floral frame — woven, and a shade deeper than the
   stationery, so the paper stands apart from what it lies on; light falls across each sheet, the cut

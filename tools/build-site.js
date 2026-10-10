@@ -54,6 +54,7 @@ const bootstrap = `
       nameOverrides: { full: data.f, first: data.r, short: data.s },
       note: data.n || '',
       lang: data.l === 'it' ? 'it' : 'en',
+      checkinKey: location.hash,
       fontCss: window.INVITATION_FONT_CSS,
       stampArt: window.STAMP_ART,
       textures: window.TEXTURES,
