@@ -1817,6 +1817,9 @@ window.INVITATION = (function () {
     if (remembered && remembered.a && remembered.a.pass) {
       $('g-pass').value = remembered.a.pass;
       $('g-remember').checked = remembered.remember;
+      /* A device signed in by the first version kept its own token. Use it
+         once to store the shared access, then forget it here. */
+      if (remembered.a.token) { setup = true; $('g-token').value = remembered.a.token; }
       enter(remembered.a.pass, remembered.remember, remembered.a.who);
     }
   }
