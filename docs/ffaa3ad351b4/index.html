@@ -1,3 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
 <title>Passenger Manifest 1D0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -180,10 +187,43 @@
     background:var(--fg); color:var(--bg); padding:9px 16px; border-radius:4px; font-size:14px; box-shadow:var(--shadow); max-width:calc(100% - 32px)}
   .readonly-note{background:var(--warn-bg); color:var(--warn); padding:10px 12px; border-radius:4px; margin-bottom:14px; font-size:14px}
   footer.foot{margin-top:28px; font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px 18px}
+  /* ---------- the lock screen ---------- */
+  .gate{max-width:520px; margin:8vh auto 0; display:grid; gap:16px}
+  .gate ol{margin:0; padding-left:20px; display:grid; gap:6px; color:var(--muted); font-size:14px}
+  .gate a{color:var(--accent)}
+  .gate .err{color:var(--wax); font-size:14px; min-height:1.4em; margin:0}
+  .check{display:flex; gap:8px; align-items:center; font-size:14px; color:var(--muted)}
+  [hidden]{display:none!important}
   @media (prefers-reduced-motion:no-preference){ .drawer{animation:slide .22s ease-out} @keyframes slide{from{transform:translateX(24px); opacity:.6}} }
 </style>
+</head>
+<body>
 
-<div class="wrap">
+<div class="wrap" id="gatewrap">
+  <form class="gate" id="gate" autocomplete="off">
+    <header class="mast"><h1>Passenger Manifest <em>1D0</em></h1></header>
+    <p class="hint" style="font-size:14px">The guest list is saved in the <b>senzmir/invit</b> repository on GitHub, locked with a passphrase that only the two of you know. The repository is public, so without the passphrase the saved list is unreadable.</p>
+    <label class="f">GitHub access token
+      <input id="g-token" type="password" spellcheck="false" placeholder="github_pat_… or ghp_…" required>
+    </label>
+    <ol>
+      <li>Filippo: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create a fine-grained token</a>, pick only the <b>invit</b> repository, and set <b>Contents</b> to <b>Read and write</b>.</li>
+      <li>Victoria: once Filippo has added you as a collaborator on the repository, <a href="https://github.com/settings/tokens/new?scopes=public_repo&amp;description=Passenger%20manifest" target="_blank" rel="noopener">create a classic token</a> with only <b>public_repo</b> ticked.</li>
+    </ol>
+    <label class="f">Passphrase for the guest list
+      <input id="g-pass" type="password" spellcheck="false" required>
+    </label>
+    <label class="f" id="g-confirmwrap" hidden>Type the passphrase again
+      <input id="g-confirm" type="password" spellcheck="false">
+    </label>
+    <p class="hint" id="g-newnote" hidden>There is no guest list yet, so this passphrase will lock a new one. Write it down and give it to each other in person or on a call. If it is lost, the list cannot be opened.</p>
+    <label class="check"><input type="checkbox" id="g-remember" checked> Remember on this device</label>
+    <div class="actions"><button class="btn primary" type="submit" id="g-go">Open the manifest</button></div>
+    <p class="err" id="g-err" role="alert"></p>
+  </form>
+</div>
+
+<div class="wrap" id="app" hidden>
   <header class="mast">
     <div>
       <h1>Passenger Manifest <em>1D0</em></h1>
@@ -194,7 +234,7 @@
         <span><b>WDH→ITA</b> TBA</span>
       </div>
     </div>
-    <div class="who" id="who"><span class="live" id="live"></span><span id="whotext">Connecting to the shared list…</span></div>
+    <div class="who" id="who"><span class="live" id="live"></span><span id="whotext">Opening…</span><br><button class="btn ghost small" type="button" id="lock" style="margin-top:4px">Lock this device</button></div>
   </header>
 
   <nav class="board" id="board" aria-label="Filter passengers">
@@ -204,7 +244,7 @@
     <button type="button" data-f="replied" aria-pressed="false"><span class="n" id="c-replied">0</span><span class="l">Replied</span></button>
   </nav>
 
-  <div class="readonly-note" id="ronote" hidden>You can see the manifest but not change it. Ask the owner to share it with you as an Editor or Contributor.</div>
+  <div class="readonly-note" id="ronote" hidden>This token can read the manifest but not save changes. Lock this device and use a token with write access.</div>
 
   <div class="tools">
     <div class="search"><input type="search" id="q" placeholder="Search names, groups, notes…" aria-label="Search passengers"></div>
@@ -217,7 +257,7 @@
   <div class="manifest" id="manifest" role="list"></div>
 
   <footer class="foot">
-    <span>Every change saves on its own and shows up for everyone who has this page open.</span>
+    <span>Every change saves to GitHub on its own. The other person’s changes show up within about 20 seconds.</span>
     <span>Guest links open <span id="sitehost"></span></span>
   </footer>
 </div>
@@ -811,12 +851,13 @@ window.INVITATION = (function () {
     it: 'Ciao {first},\n\nIl volo 1D0 è in partenza e c’è un posto con il tuo nome. Il tuo invito è qui:\n{link}\n\nCon affetto,\nFilippo & Victoria'
   };
 
-  var db = null, user = null, myId = null, canWrite = true;
-  var guests = {};          // id -> data
+  var canWrite = true, ready = false;
+  var myId = '';            // GitHub login of whoever is using this device
+  var store = { guests: {}, settings: {} };   // everything saved, removed passengers included
+  var guests = {};          // id -> data, live passengers only
   var settings = { tpl: { en: DEFAULT_TPL.en, it: DEFAULT_TPL.it } };
   var filter = 'all', query = '';
   var openId = null;        // guest in the drawer
-  var names = {};           // user id -> display name
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = I.esc;
@@ -869,48 +910,32 @@ window.INVITATION = (function () {
   function who(id) {
     if (!id) return '';
     if (id === myId) return 'you';
-    return names[id] || 'someone';
+    return id;
   }
 
   /* ------------------------------------------------------------------ */
-  /* Writes: one at a time per guest, coalesced while typing             */
+  /* Edits: applied here at once, saved to GitHub after a pause          */
   /* ------------------------------------------------------------------ */
 
-  var queues = {};
   function patch(id, fields, now) {
-    if (!db || !canWrite) return;
-    var q = queues[id] || (queues[id] = { p: {}, t: null, chain: Promise.resolve() });
-    Object.keys(fields).forEach(function (k) {
-      if (k === 'rsvp' && q.p.rsvp) Object.assign(q.p.rsvp, fields.rsvp);
-      else q.p[k] = fields[k];
-    });
-    /* show it right away; the snapshot confirms it */
+    if (!ready || canWrite === false) return;
     var g = guests[id];
-    if (g) {
-      Object.keys(fields).forEach(function (k) {
-        if (k === 'rsvp') g.rsvp = Object.assign({}, g.rsvp || {}, fields.rsvp); else g[k] = fields[k];
-      });
-    }
-    clearTimeout(q.t);
-    q.t = setTimeout(function () { flush(id); }, now ? 0 : 450);
+    if (!g) return;
+    Object.keys(fields).forEach(function (k) {
+      if (k === 'rsvp') g.rsvp = Object.assign({}, g.rsvp || {}, fields.rsvp); else g[k] = fields[k];
+    });
+    g.updatedAt = Date.now();
+    g.updatedBy = myId;
+    Sync.changed(now);
     scheduleRender();
   }
-  function flush(id) {
-    var q = queues[id];
-    if (!q || !Object.keys(q.p).length) return q ? q.chain : Promise.resolve();
-    var body = q.p; q.p = {};
-    body.updatedAt = Date.now();
-    if (myId) body.updatedBy = myId;
-    q.chain = q.chain.then(function () {
-      return db.doc('guests/' + id).update(body);
-    }).catch(function (e) { writeFailed(e); });
-    return q.chain;
-  }
-  function writeFailed(e) {
-    var code = e && e.code;
-    if (code === 'invalid_argument' && canWrite === null) { setWritable(false); return; }
-    if (code === 'quota_exceeded') toast('The list is full. Delete some passengers to add more.');
-    else toast('That change did not save. Check your connection and try again.');
+  function flush() { if (Sync.isDirty()) Sync.changed(true); }
+  function refreshView() {
+    var next = {};
+    Object.keys(store.guests).forEach(function (id) { if (!store.guests[id].deleted) next[id] = store.guests[id]; });
+    guests = next;
+    var t = store.settings && store.settings.tpl;
+    settings.tpl = { en: (t && t.en) || DEFAULT_TPL.en, it: (t && t.it) || DEFAULT_TPL.it };
   }
   function newId() { return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
   function createGuest(data) {
@@ -919,9 +944,9 @@ window.INVITATION = (function () {
     var g = Object.assign({ name: '', full: '', first: '', short: '', lang: 'en', note: '', phone: '', email: '',
       group: '', internal: '', status: 'todo', sentAt: 0, sentBy: '', sentVia: '', sentLink: '',
       rsvp: { ams: '', wdh: '', ita: '' }, createdAt: now, createdBy: myId || '', updatedAt: now, updatedBy: myId || '' }, data);
-    guests[id] = g;
-    var q = queues[id] = { p: {}, t: null, chain: Promise.resolve() };
-    q.chain = db.doc('guests/' + id).set(g).catch(function (e) { delete guests[id]; writeFailed(e); scheduleRender(); });
+    store.guests[id] = g;
+    refreshView();
+    Sync.changed();
     scheduleRender();
     return id;
   }
@@ -1037,7 +1062,7 @@ window.INVITATION = (function () {
   $('export').addEventListener('click', exportCsv);
 
   function addOne() {
-    if (!db) return toast('Still connecting to the shared list.');
+    if (!ready) return;
     var id = createGuest({});
     openDrawer(id, true);
   }
@@ -1067,7 +1092,7 @@ window.INVITATION = (function () {
     if (focusName) $('f-name').focus(); else layer.querySelector('[data-close].btn').focus();
   }
   function closeDrawer() {
-    if (openId) flush(openId);
+    if (openId) flush();
     var wasId = openId;
     openId = null; $('layer').innerHTML = '';
     var row = document.querySelector('.row[data-id="' + wasId + '"]');
@@ -1103,6 +1128,7 @@ window.INVITATION = (function () {
         '<div class="actions">' +
           '<button class="btn primary" type="button" id="b-copymsg">Copy message</button>' +
           '<button class="btn" type="button" id="b-copylink">Copy link only</button>' +
+          (navigator.share ? '<button class="btn" type="button" id="b-share">Send…</button>' : '') +
           '<a class="btn" id="b-wa" target="_blank" rel="noopener">WhatsApp</a>' +
           '<a class="btn" id="b-open" target="_blank" rel="noopener">Open invitation</a>' +
         '</div>' +
@@ -1147,7 +1173,7 @@ window.INVITATION = (function () {
       if (k === 'name') updateDrawer(false);
     });
     body.addEventListener('change', function (e) {   /* commit on blur */
-      if (e.target.getAttribute('data-k') && openId) flush(openId);
+      if (e.target.getAttribute('data-k') && openId) flush();
     });
     body.addEventListener('click', function (e) {
       if (!openId) return;
@@ -1164,6 +1190,11 @@ window.INVITATION = (function () {
       var id = e.target.id || (e.target.closest('[id]') || {}).id;
       if (id === 'b-copymsg') return copy(messageFor(g), 'Message copied. Paste it into WhatsApp, email or a text.');
       if (id === 'b-copylink') return copy(linkFor(g), 'Link copied.');
+      if (id === 'b-share') {
+        return navigator.share({ text: messageFor(g) }).then(function () {
+          if (g.status !== 'sent') offerMark('');
+        }, function () {});
+      }
       if (id === 'b-wa') { if (g.status !== 'sent') offerMark('WhatsApp'); return; }
       if (id === 'b-marksent') return markSent(openId, $('f-via') ? $('f-via').value : '');
       if (id === 'b-unsend') return patch(openId, { status: 'todo', sentAt: 0, sentBy: '', sentVia: '', sentLink: '' }, true);
@@ -1248,15 +1279,14 @@ window.INVITATION = (function () {
   }
 
   function deleteGuest(id) {
-    var q = queues[id];
-    if (q) { clearTimeout(q.t); q.p = {}; }
     var g = guests[id];
-    delete guests[id];
+    /* a marker rather than a gap, so the other device's copy cannot bring them back */
+    store.guests[id] = { deleted: true, updatedAt: Date.now(), updatedBy: myId };
+    refreshView();
     openId = null; $('layer').innerHTML = '';
+    Sync.changed(true);
     scheduleRender();
-    (q ? q.chain : Promise.resolve()).then(function () { return db.doc('guests/' + id).delete(); })
-      .then(function () { toast((g && g.name ? g.name : 'Passenger') + ' removed.'); })
-      .catch(function (e) { guests[id] = g; scheduleRender(); writeFailed(e); });
+    toast((g && g.name ? g.name : 'Passenger') + ' removed.');
   }
 
   /* ------------------------------------------------------------------ */
@@ -1278,7 +1308,7 @@ window.INVITATION = (function () {
   }
 
   function openPaste() {
-    if (!db) return toast('Still connecting to the shared list.');
+    if (!ready) return;
     var layer = document.createElement('div');
     layer.innerHTML = '<div class="scrim top" data-x></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="p-h">' +
       '<h2 id="p-h">Paste a list</h2>' +
@@ -1324,7 +1354,7 @@ window.INVITATION = (function () {
   /* ------------------------------------------------------------------ */
 
   function openTemplates() {
-    var ro = canWrite === false || !db ? ' disabled' : '';
+    var ro = canWrite === false || !ready ? ' disabled' : '';
     var layer = document.createElement('div');
     layer.innerHTML = '<div class="scrim top" data-x></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="t-h">' +
       '<h2 id="t-h">The message that goes with the link</h2>' +
@@ -1342,9 +1372,10 @@ window.INVITATION = (function () {
       if (e.target.id === 't-save') {
         var tpl = { en: layer.querySelector('#t-en').value, it: layer.querySelector('#t-it').value };
         if (!/\{link\}/.test(tpl.en) || !/\{link\}/.test(tpl.it)) { toast('Keep {link} in both messages, or guests get no invitation.'); return; }
-        settings.tpl = tpl;
-        db.doc('settings/main').set({ tpl: tpl, updatedAt: Date.now(), updatedBy: myId || '' })
-          .then(function () { toast('Message saved.'); }, writeFailed);
+        store.settings = { tpl: tpl, updatedAt: Date.now(), updatedBy: myId };
+        refreshView();
+        Sync.changed(true);
+        toast('Message saved.');
         layer.remove(); scheduleRender();
       }
     });
@@ -1370,11 +1401,11 @@ window.INVITATION = (function () {
   function exportCsv() {
     if (!Object.keys(guests).length) return toast('Nothing to export yet.');
     var text = csv();
-    claude.use('downloads').then(function (dl) {
-      if (!dl) return copy(text, 'Saving files is off here, so the CSV was copied instead. Paste it into a spreadsheet.');
-      return dl.save({ filename: 'manifest-1D0-' + new Date().toISOString().slice(0, 10) + '.csv', data: text })
-        .catch(function () { copy(text, 'The CSV was copied instead. Paste it into a spreadsheet.'); });
-    });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'manifest-1D0-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
   }
 
   /* ------------------------------------------------------------------ */
@@ -1410,18 +1441,6 @@ window.INVITATION = (function () {
     if (openId) openDrawer(openId);
   }
 
-  function resolveNames() {
-    if (!user) return;
-    var ids = {};
-    Object.keys(guests).forEach(function (id) { var g = guests[id]; [g.sentBy, g.createdBy, g.updatedBy].forEach(function (u) { if (u && u !== myId) ids[u] = 1; }); });
-    var list = Object.keys(ids).filter(function (u) { return !(u in names); });
-    if (!list.length) return;
-    user.profiles(list).then(function (ps) {
-      list.forEach(function (u) { names[u] = (ps && ps[u] && ps[u].name) || 'someone'; });
-      scheduleRender();
-    }, function () {});
-  }
-
   try { var saved = localStorage.getItem('manifest-filter'); if (saved && $('c-' + saved)) {
     filter = saved;
     Array.prototype.forEach.call($('board').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-f') === saved)); });
@@ -1429,55 +1448,264 @@ window.INVITATION = (function () {
   render();
 
   /* ------------------------------------------------------------------ */
-  /* Connect                                                             */
+  /* Storage: one encrypted file on its own branch of the repository     */
+  /*                                                                     */
+  /* The repository is public, so the list is sealed with AES-GCM under  */
+  /* a key derived from the passphrase. GitHub only ever holds the       */
+  /* sealed copy, and the passphrase never leaves the device.            */
   /* ------------------------------------------------------------------ */
 
-  if (!window.claude || !claude.use) {
-    $('whotext').textContent = 'Open this page on claude.ai to see the shared list.';
-    return;
-  }
-  Promise.all([claude.use('db'), claude.use('user')]).then(function (r) {
-    db = r[0]; user = r[1];
-    if (!db) {
-      $('whotext').textContent = 'Sign in to claude.ai to see the shared list.';
-      setWritable(false);
-      return;
-    }
-    var idP = user ? user.id() : Promise.resolve(null);
-    var canP = user ? user.can('data.write') : Promise.resolve(null);
-    Promise.all([idP, canP, user ? user.name() : Promise.resolve('')]).then(function (v) {
-      myId = v[0];
-      canWrite = v[1] === false ? false : (v[1] === true ? true : null);
-      setWritable(canWrite);
-      $('live').classList.add('on');
-      $('whotext').textContent = 'Live · ' + (v[2] ? 'signed in as ' + v[2] : 'shared list');
-    });
+  var REPO = { owner: 'senzmir', name: 'invit', branch: 'guestlist-data', path: 'guests.json' };
+  var API = 'https://api.github.com';
+  var ITER = 310000;
+  var AUTH_KEY = 'manifest-auth';
 
-    db.collection('guests').onSnapshot(function (snap) {
-      var next = {};
-      snap.docs.forEach(function (d) {
-        var data = JSON.parse(JSON.stringify(d.data() || {}));
-        var q = queues[d.id];
-        if (q && Object.keys(q.p).length) {     /* keep what this person is still typing */
-          Object.keys(q.p).forEach(function (k) { data[k] = k === 'rsvp' ? Object.assign({}, data.rsvp || {}, q.p.rsvp) : q.p[k]; });
-        }
-        next[d.id] = data;
+  function b64(bytes) { var s = ''; for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]); return btoa(s); }
+  function unb64(t) { var s = atob(t), b = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; }
+
+  var Sync = (function () {
+    var token = '', pass = '', key = null, salt = null;
+    var sha = null, dirty = false, saving = false, timer = null, pollTimer = null, stopped = false;
+    var repoPath = '/repos/' + REPO.owner + '/' + REPO.name;
+
+    function api(path, opts) {
+      opts = opts || {};
+      var headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Authorization': 'Bearer ' + token };
+      if (opts.body) headers['Content-Type'] = 'application/json';
+      return fetch(API + path, { method: opts.method || 'GET', headers: headers, cache: 'no-store',
+        body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) {
+        return r.text().then(function (t) {
+          var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+          if (!r.ok) { var err = new Error((j && j.message) || r.statusText); err.status = r.status; throw err; }
+          return j;
+        });
       });
-      /* a guest created here but not yet confirmed stays visible */
-      Object.keys(guests).forEach(function (id) { if (!next[id] && queues[id] && guests[id].createdAt > Date.now() - 15000) next[id] = guests[id]; });
-      guests = next;
-      resolveNames();
-      scheduleRender();
-    }, function (e) {
-      $('live').classList.remove('on');
-      $('whotext').textContent = 'Lost the connection to the shared list. Reload the page.';
+    }
+
+    function deriveKey(saltBytes) {
+      return crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']).then(function (base) {
+        return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: saltBytes, iterations: ITER, hash: 'SHA-256' },
+          base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+      });
+    }
+    function seal(data) {
+      var iv = crypto.getRandomValues(new Uint8Array(12));
+      return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(JSON.stringify(data))).then(function (ct) {
+        return JSON.stringify({ format: 'bfa-manifest', v: 1, kdf: 'PBKDF2-SHA256', iter: ITER,
+          salt: b64(salt), iv: b64(iv), ct: b64(new Uint8Array(ct)) }, null, 1);
+      });
+    }
+    function unseal(env) {
+      var have = key && salt && b64(salt) === env.salt;
+      var s = unb64(env.salt);
+      return (have ? Promise.resolve(key) : deriveKey(s).then(function (k) { key = k; salt = s; return k; })).then(function (k) {
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(env.iv) }, k, unb64(env.ct));
+      }).then(function (pt) { return JSON.parse(new TextDecoder().decode(pt)); }, function (e) {
+        if (e && e.name === 'OperationError') { key = null; salt = null; var err = new Error('badpass'); err.badpass = true; throw err; }
+        throw e;
+      });
+    }
+
+    /* -> {sha, data}, or {sha: null} while there is no list yet */
+    function fetchRemote() {
+      return api(repoPath + '/contents/' + REPO.path + '?ref=' + REPO.branch + '&t=' + Date.now()).then(function (j) {
+        var env = JSON.parse(new TextDecoder().decode(unb64(j.content.replace(/\s/g, ''))));
+        return unseal(env).then(function (data) { return { sha: j.sha, data: data }; });
+      }, function (e) {
+        if (e.status === 404) return { sha: null, data: null };
+        throw e;
+      });
+    }
+
+    /* The newest edit of each passenger wins, so two people working on
+       different guests at the same time never lose each other's work. */
+    function merge(remote) {
+      if (!remote) return;
+      var rg = remote.guests || {};
+      Object.keys(rg).forEach(function (id) {
+        var l = store.guests[id];
+        if (!l || (rg[id].updatedAt || 0) > (l.updatedAt || 0)) store.guests[id] = rg[id];
+      });
+      var rs = remote.settings || {};
+      if ((rs.updatedAt || 0) > ((store.settings || {}).updatedAt || 0)) store.settings = rs;
+      refreshView();
+    }
+
+    /* The very first save makes a branch with no history in common with
+       the site, so saving the guest list never rebuilds GitHub Pages. */
+    function createBranch(content) {
+      return api(repoPath + '/git/trees', { method: 'POST', body: { tree: [
+        { path: REPO.path, mode: '100644', type: 'blob', content: content },
+        { path: 'README.md', mode: '100644', type: 'blob', content: '# Guest list data\n\nThe Passenger Manifest saves here. `guests.json` is encrypted with the couple\'s passphrase: open the manifest page to read it, and do not edit it by hand.\n' }
+      ] } }).then(function (tree) {
+        return api(repoPath + '/git/commits', { method: 'POST', body: { message: 'Start the guest list', tree: tree.sha, parents: [] } });
+      }).then(function (commit) {
+        return api(repoPath + '/git/refs', { method: 'POST', body: { ref: 'refs/heads/' + REPO.branch, sha: commit.sha } });
+      }).then(fetchRemote).then(function (r) { sha = r.sha; });
+    }
+
+    function put(content) {
+      var body = { message: 'Update guest list', content: btoa(content), branch: REPO.branch };
+      if (sha) body.sha = sha;
+      return api(repoPath + '/contents/' + REPO.path, { method: 'PUT', body: body })
+        .then(function (res) { sha = res.content.sha; }, function (e) {
+          if (!sha && e.status === 404) return createBranch(content);   /* no branch yet */
+          throw e;
+        });
+    }
+
+    function save(attempt) {
+      attempt = attempt || 0;
+      if (saving && !attempt) return Promise.resolve();
+      saving = true; dirty = false;
+      status('saving');
+      return seal(store).then(put).then(function () {
+        saving = false;
+        if (dirty) changed(); else status('saved');
+      }, function (e) {
+        if ((e.status === 409 || e.status === 422) && attempt < 4) {
+          /* the other person saved first: take their copy, fold ours in, try again */
+          return fetchRemote().then(function (r) { sha = r.sha; merge(r.data); scheduleRender(); return save(attempt + 1); });
+        }
+        saving = false; dirty = true;
+        if (e.status === 401) { stopped = true; status('error', 'GitHub no longer accepts this token. Lock this device and enter a new one.'); return; }
+        if (e.status === 403 || e.status === 404) { stopped = true; setWritable(false); status('error', 'This token cannot save to the repository, so changes on this device are not being saved.'); return; }
+        status('error', 'Could not save to GitHub. Trying again in 15 seconds.');
+        clearTimeout(timer); timer = setTimeout(function () { save(); }, 15000);
+      });
+    }
+
+    function changed(now) {
+      dirty = true;
+      if (stopped) return;
+      status('pending');
+      clearTimeout(timer);
+      timer = setTimeout(function () { if (saving) changed(); else save(); }, now ? 250 : 1500);
+    }
+
+    function poll() {
+      clearTimeout(pollTimer);
+      pollTimer = setTimeout(poll, 20000);
+      if (saving || document.hidden) return;
+      fetchRemote().then(function (r) {
+        if (!r.sha || r.sha === sha || saving) return;
+        sha = r.sha; merge(r.data); scheduleRender();
+      }, function () {});
+    }
+
+    function status(kind, msg) {
+      var live = $('live'), t = $('whotext');
+      var me = myId ? ' · ' + myId : '';
+      live.className = kind === 'saved' ? 'live on' : 'live';
+      if (kind === 'saved') t.textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + me;
+      else if (kind === 'pending') t.textContent = 'Unsaved changes…' + me;
+      else if (kind === 'saving') t.textContent = 'Saving…' + me;
+      else { t.textContent = 'Not saved' + me; toast(msg); }
+    }
+
+    window.addEventListener('beforeunload', function (e) { if (dirty || saving) { e.preventDefault(); e.returnValue = ''; } });
+    document.addEventListener('visibilitychange', function () {
+      if (!ready) return;
+      if (!document.hidden) poll();
+      else if (dirty && !saving && !stopped) { clearTimeout(timer); save(); }
     });
 
-    db.doc('settings/main').onSnapshot(function (d) {
-      var data = d.exists ? d.data() : null;
-      if (data && data.tpl) settings.tpl = { en: data.tpl.en || DEFAULT_TPL.en, it: data.tpl.it || DEFAULT_TPL.it };
-      scheduleRender();
-    }, function () {});
+    /* Resolves 'ok', or 'new' when there is no list yet and isNew was not
+       set. Rejects with a message fit to show. */
+    function connect(t, p, isNew) {
+      token = t; pass = p; key = null; salt = null;
+      var push = null;
+      return api('/user').then(function (u) {
+        myId = u.login;
+        return api(repoPath).then(function (r) { push = r.permissions ? !!r.permissions.push : null; }, function () {});
+      }, function (e) {
+        throw new Error(e.status === 401 ? 'GitHub did not accept that token. Check it was copied in full and has not expired.' : 'Could not reach GitHub. Check your connection and try again.');
+      }).then(function () {
+        return fetchRemote().catch(function (e) {
+          if (e.badpass) throw new Error('That passphrase does not open this guest list.');
+          throw new Error('Could not read the guest list from GitHub: ' + (e.message || e.status) + '.');
+        });
+      }).then(function (r) {
+        if (!r.sha) {
+          if (!isNew) return 'new';
+          salt = crypto.getRandomValues(new Uint8Array(16));
+          return deriveKey(salt).then(function (k) { key = k; sha = null; return save(); }).then(function () {
+            if (stopped) throw new Error('This token cannot create the guest list. It needs write access to the repository.');
+            return 'ok';
+          });
+        }
+        sha = r.sha; store = { guests: {}, settings: {} }; merge(r.data);
+        return 'ok';
+      }).then(function (res) {
+        if (res !== 'ok') return res;
+        ready = true;
+        if (push === false) setWritable(false);
+        status('saved');
+        pollTimer = setTimeout(poll, 20000);
+        return res;
+      });
+    }
+
+    return { connect: connect, changed: changed, isDirty: function () { return dirty; } };
+  })();
+
+  /* ------------------------------------------------------------------ */
+  /* The lock screen                                                     */
+  /* ------------------------------------------------------------------ */
+
+  function readAuth() {
+    try {
+      var l = localStorage.getItem(AUTH_KEY);
+      if (l) return { a: JSON.parse(l), remember: true };
+      var s = sessionStorage.getItem(AUTH_KEY);
+      if (s) return { a: JSON.parse(s), remember: false };
+    } catch (e) {}
+    return null;
+  }
+  function writeAuth(a, remember) {
+    try {
+      localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY);
+      (remember ? localStorage : sessionStorage).setItem(AUTH_KEY, JSON.stringify(a));
+    } catch (e) {}
+  }
+
+  var isNew = false;
+  function enter(token, pass, remember) {
+    var go = $('g-go'), err = $('g-err');
+    var label = function () { go.disabled = false; go.textContent = isNew ? 'Lock the new guest list' : 'Open the manifest'; };
+    go.disabled = true; go.textContent = 'Opening…'; err.textContent = '';
+    return Sync.connect(token, pass, isNew).then(function (res) {
+      if (res === 'new') {
+        isNew = true; label();
+        $('g-confirmwrap').hidden = false; $('g-newnote').hidden = false;
+        $('g-confirm').focus();
+        return;
+      }
+      writeAuth({ token: token, pass: pass }, remember);
+      $('gatewrap').hidden = true; $('app').hidden = false;
+      render();
+    }, function (e) { label(); err.textContent = e.message; });
+  }
+
+  $('gate').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var token = $('g-token').value.trim(), pass = $('g-pass').value;
+    if (pass.length < 8) { $('g-err').textContent = 'Use a passphrase of at least 8 characters. A short sentence works well.'; return; }
+    if (isNew && $('g-confirm').value !== pass) { $('g-err').textContent = 'The two passphrases do not match.'; return; }
+    enter(token, pass, $('g-remember').checked);
   });
+  $('lock').addEventListener('click', function () {
+    try { localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
+    location.reload();
+  });
+
+  var remembered = readAuth();
+  if (remembered && remembered.a && remembered.a.token && remembered.a.pass) {
+    $('g-token').value = remembered.a.token; $('g-pass').value = remembered.a.pass;
+    $('g-remember').checked = remembered.remember;
+    enter(remembered.a.token, remembered.a.pass, remembered.remember);
+  }
 })();
 </script>
+</body>
+</html>

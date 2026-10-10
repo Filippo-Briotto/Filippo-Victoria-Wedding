@@ -68,9 +68,12 @@ saying *“this is the development copy”*, you have opened `index.html` by mis
 
 ## The guest list
 
-**[Passenger Manifest 1D0](https://claude.ai/artifact/7eYNEUv3BVsjk7QccaQhop)** is the shared
-guest list. It is a claude.ai page with its own database, so whatever either of you changes shows
-up on the other's screen straight away, on a laptop or a phone.
+The **Passenger Manifest** is the shared guest list, on the same Pages site as the invitation:
+
+    https://senzmir.github.io/invit/ffaa3ad351b4/
+
+It is in a folder of its own, so a guest looking at their link learns nothing about where the list
+is. It works on a laptop or a phone, and the other person's changes show up within about 20 seconds.
 
 - **Add passengers** one at a time, or **Paste a list**: one per line, and a phone, email and
   group can go on the same line separated by tabs (straight from a spreadsheet) or semicolons.
@@ -84,14 +87,37 @@ up on the other's screen straight away, on a laptop or a phone.
 - **RSVP** per leg (Amsterdam, Windhoek, Italy), **Our notes** for things the guest never sees,
   and **Export CSV** for a spreadsheet copy.
 
-**Sharing it:** the page starts private to its owner. Open it, use **Share**, and add your partner
-as an **Editor** (or Contributor) so they can make changes. A Viewer can read the list but not
-change it.
+### Where the list is kept
+
+In this repository, on a branch of its own called `guestlist-data`, as one file, `guests.json`.
+The repository is public, so that file is **encrypted** (AES-GCM, with a key derived from your
+passphrase by PBKDF2) before it leaves the browser. GitHub only ever holds the scrambled copy, and
+the passphrase never leaves your devices. The branch shares no history with the site, so saving the
+list never rebuilds Pages.
+
+**Choose the passphrase carefully and keep it written down.** It is chosen the first time the
+manifest is opened, and without it the list cannot be read by anyone, including you.
+
+### Signing in
+
+Each of you enters a GitHub token and the passphrase once per device (untick *Remember on this
+device* on a borrowed one; **Lock this device** forgets both).
+
+- **Filippo:** [create a fine-grained token](https://github.com/settings/personal-access-tokens/new)
+  with only the `invit` repository selected and **Contents: Read and write**.
+- **Victoria:** Filippo adds you under **Settings → Collaborators** on the repository. Accept the
+  invitation, then [create a classic token](https://github.com/settings/tokens/new?scopes=public_repo)
+  with only `public_repo` ticked. (Fine-grained tokens can only reach repositories you own.)
+
+Changes save on their own after a short pause. If you both save at the same moment, the page takes
+the other copy, keeps the newest edit of each guest, and saves again, so working on different guests
+at the same time loses nothing.
+
+### Changing the page
 
 The source is [`manifest/src.html`](manifest/src.html). `node tools/build-manifest.js` inlines
-`assets/invitation.js` into it to make `manifest/manifest.html`, which is the file published. Rebuild
-and republish after changing `SITE` or the payload format, so that new links stay in step with the site.
-The guests themselves live in the page's database, not in this repo.
+`assets/invitation.js` into it and writes `docs/ffaa3ad351b4/index.html`. Rebuild after changing
+the page, `SITE` or the payload format, so that new links stay in step with the site.
 
 ## Changing the wedding details
 
@@ -119,7 +145,7 @@ just below, in both languages.
 |---|---|
 | `minter.html` | **the minting desk, one self-contained file** — this is the one to use |
 | `index.html` | the same desk, loading its scripts from `assets/` — work on this one |
-| `manifest/` | the shared guest list: `src.html` and its built, published `manifest.html` |
+| `manifest/src.html` | the shared guest list page; built into `docs/ffaa3ad351b4/` |
 | `assets/invitation.js` | **the wedding facts**, both languages of copy, the drawn marks |
 | `assets/template.js` | the invitation document itself: markup, styles, the envelope |
 | `assets/fonts.js` | Cormorant Garamond + Courier Prime, base64'd (generated) |
