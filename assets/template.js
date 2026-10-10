@@ -224,24 +224,23 @@
 /* headroom for the letter and the passes to rise out of the envelope */
 'body{margin:0;padding:clamp(168px,18vh,196px) 16px 96px;min-height:100vh;',
 '  font-family:"Cormorant Garamond",Garamond,"Hoefler Text","Times New Roman",serif;',
-/* The mail lies on a plain, near-white surface -- the invitation carries all the
-   colour, so the ground stays out of its way. There is deliberately no pool of
+/* The mail lies on a linen cloth -- plain, so the invitation carries all the
+   colour and the ground stays out of its way. There is deliberately no pool of
    light over it: any such overlay is only ever as tall as the viewport, so down
    a long page it ends in a hard horizontal edge across the middle of the
    surface. The flowers do the framing instead.
-   It is a shade deeper and greyer than the stationery, though: it once used the
-   envelope's own cream, and with the same paper tile on both the envelope
-   simply dissolved into the ground. The tile is opaque, so the shade comes from
-   a flat wash laid over it -- flat, so unlike a pool of light it has no edge. */
-'  color:#201c17;background-color:#e6dfd1;',
-'  background-image:linear-gradient(rgba(150,136,112,.16),rgba(150,136,112,.16)),var(--paper-tex);',
-'  background-size:auto,300px 300px;',
+   It is cloth, not paper, and a shade deeper and greyer than the stationery:
+   it used to be the writing-paper tile itself, and with the same texture on
+   both the envelope and the letter simply dissolved into the ground. */
+'  color:#201c17;background-color:#e4ddcf;',
+'  background-image:var(--ground-tex);background-size:240px 240px;',
 '  display:flex;flex-direction:column;align-items:center;position:relative}',
 ':root{--on-cloth:#6d5744;--paper:#f7f1e3;--paper-2:#efe6d3;--ink:#201c17;--ink-2:#6d6153;',
 '  --line:#cbbca1;--blue:#123a4d;--red:#a83f2a;--gold:#b3893f;',
 '  --mono:"Courier Prime","Courier New",monospace;',
 '  --paper-tex:url(' + (tex.paper || '') + ');',
 '  --motif-tex:url(' + (tex.motif || '') + ');',
+'  --ground-tex:url(' + (tex.ground || '') + ');',
 '  --bloom-a:url(' + (flo.cornerA || '') + ');',
 '  --bloom-b:url(' + (flo.cornerB || '') + ');',
 /* Boarding passes are not printed on writing paper. Ticket stock is thinner and
