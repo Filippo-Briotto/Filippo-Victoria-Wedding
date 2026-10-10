@@ -64,6 +64,7 @@
     display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:8px}
   .flightline b{color:var(--fg); font-weight:700}
   .who{font:400 12px/1.4 var(--mono); color:var(--muted); letter-spacing:.06em; text-align:right}
+  @media (max-width:560px){ .who{text-align:left} }
   .who .live{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--line-2); margin-right:6px; vertical-align:1px}
   .who .live.on{background:var(--ok)}
 
@@ -202,25 +203,30 @@
 <div class="wrap" id="gatewrap">
   <form class="gate" id="gate" autocomplete="off">
     <header class="mast"><h1>Passenger Manifest <em>1D0</em></h1></header>
-    <p class="hint" style="font-size:14px">The guest list is saved in the <b>senzmir/invit</b> repository on GitHub, locked with a passphrase that only the two of you know. The repository is public, so without the passphrase the saved list is unreadable.</p>
-    <label class="f">GitHub access token
-      <input id="g-token" type="password" spellcheck="false" placeholder="github_pat_… or ghp_…" required>
+    <p style="font-size:16px; margin:0">Our wedding guest list. Type our passphrase to open it.</p>
+    <label class="f">Passphrase
+      <input id="g-pass" type="password" spellcheck="false" autocapitalize="off" required>
     </label>
-    <ol>
-      <li>Filippo: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create a fine-grained token</a>, pick only the <b>invit</b> repository, and set <b>Contents</b> to <b>Read and write</b>.</li>
-      <li>Victoria: once Filippo has added you as a collaborator on the repository, <a href="https://github.com/settings/tokens/new?scopes=public_repo&amp;description=Passenger%20manifest" target="_blank" rel="noopener">create a classic token</a> with only <b>public_repo</b> ticked.</li>
-    </ol>
-    <label class="f">Passphrase for the guest list
-      <input id="g-pass" type="password" spellcheck="false" required>
-    </label>
-    <label class="f" id="g-confirmwrap" hidden>Type the passphrase again
-      <input id="g-confirm" type="password" spellcheck="false">
-    </label>
-    <p class="hint" id="g-newnote" hidden>There is no guest list yet, so this passphrase will lock a new one. Write it down and give it to each other in person or on a call. If it is lost, the list cannot be opened.</p>
-    <label class="check"><input type="checkbox" id="g-remember" checked> Remember on this device</label>
-    <div class="actions"><button class="btn primary" type="submit" id="g-go">Open the manifest</button></div>
+    <div id="g-setup" hidden style="display:grid;gap:12px">
+      <p class="hint" style="font-size:14px">One-time setup, done once by Filippo. The list is saved in the <b>senzmir/invit</b> repository, scrambled with the passphrase, so nobody can read it from GitHub. The page also needs one GitHub access token, which it keeps scrambled the same way: <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create a fine-grained token</a>, pick only the <b>invit</b> repository, set <b>Contents</b> to <b>Read and write</b>, and give it an expiry after the last wedding date.</p>
+      <label class="f">GitHub access token
+        <input id="g-token" type="password" spellcheck="false" placeholder="github_pat_…">
+      </label>
+      <label class="f" id="g-confirmwrap" hidden>Type the passphrase again
+        <input id="g-confirm" type="password" spellcheck="false">
+      </label>
+      <p class="hint" id="g-newnote" hidden>There is no guest list yet, so this passphrase will lock a new one. Write it down somewhere safe. If it is lost, the list cannot be opened.</p>
+    </div>
+    <label class="check"><input type="checkbox" id="g-remember" checked> Keep me signed in on this device</label>
+    <div class="actions"><button class="btn primary" type="submit" id="g-go">Open the guest list</button></div>
     <p class="err" id="g-err" role="alert"></p>
+    <p><button class="btn ghost small" type="button" id="g-setuplink">Set up or renew access (Filippo)</button></p>
   </form>
+  <div class="gate" id="whoami" hidden>
+    <header class="mast"><h1>Who is this?</h1></header>
+    <p style="font-size:16px; margin:0">So the list can say which of you sent each invitation.</p>
+    <div class="actions" id="whobtns"></div>
+  </div>
 </div>
 
 <div class="wrap" id="app" hidden>
@@ -234,7 +240,7 @@
         <span><b>WDH→ITA</b> TBA</span>
       </div>
     </div>
-    <div class="who" id="who"><span class="live" id="live"></span><span id="whotext">Opening…</span><br><button class="btn ghost small" type="button" id="lock" style="margin-top:4px">Lock this device</button></div>
+    <div class="who" id="who"><span class="live" id="live"></span><span id="whotext">Opening…</span><br><button class="btn ghost small" type="button" id="invite" style="margin-top:4px">Sign-in link for <span id="othername"></span></button><button class="btn ghost small" type="button" id="lock" style="margin-top:4px">Sign out</button></div>
   </header>
 
   <nav class="board" id="board" aria-label="Filter passengers">
@@ -244,7 +250,7 @@
     <button type="button" data-f="replied" aria-pressed="false"><span class="n" id="c-replied">0</span><span class="l">Replied</span></button>
   </nav>
 
-  <div class="readonly-note" id="ronote" hidden>This token can read the manifest but not save changes. Lock this device and use a token with write access.</div>
+  <div class="readonly-note" id="ronote" hidden>Changes are not being saved: the GitHub access has expired or was removed. Filippo needs to sign out, open the setup again and enter a new token.</div>
 
   <div class="tools">
     <div class="search"><input type="search" id="q" placeholder="Search names, groups, notes…" aria-label="Search passengers"></div>
@@ -1470,7 +1476,8 @@ window.INVITATION = (function () {
 
     function api(path, opts) {
       opts = opts || {};
-      var headers = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Authorization': 'Bearer ' + token };
+      /* only headers every browser may send cross-site to GitHub */
+      var headers = { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + token };
       if (opts.body) headers['Content-Type'] = 'application/json';
       return fetch(API + path, { method: opts.method || 'GET', headers: headers, cache: 'no-store',
         body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) {
@@ -1615,8 +1622,7 @@ window.INVITATION = (function () {
     function connect(t, p, isNew) {
       token = t; pass = p; key = null; salt = null;
       var push = null;
-      return api('/user').then(function (u) {
-        myId = u.login;
+      return api('/user').then(function () {
         return api(repoPath).then(function (r) { push = r.permissions ? !!r.permissions.push : null; }, function () {});
       }, function (e) {
         throw new Error(e.status === 401 ? 'GitHub did not accept that token. Check it was copied in full and has not expired.' : 'Could not reach GitHub. Check your connection and try again.');
@@ -1646,7 +1652,38 @@ window.INVITATION = (function () {
       });
     }
 
-    return { connect: connect, changed: changed, isDirty: function () { return dirty; } };
+    /* The one GitHub token, kept next to the list and sealed with the same
+       passphrase, so whoever knows the passphrase needs nothing else.
+       Read without a token: the repository is public. */
+    function readAccess(p) {
+      pass = p; key = null; salt = null;
+      return fetch(API + repoPath + '/contents/access.json?ref=' + REPO.branch + '&t=' + Date.now(),
+        { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' }).then(function (r) {
+        if (r.status === 404) return null;
+        if (!r.ok) throw new Error('Could not reach GitHub. Check your connection and try again.');
+        return r.json().then(function (j) {
+          var env = JSON.parse(new TextDecoder().decode(unb64(j.content.replace(/\s/g, ''))));
+          return unseal(env).then(function (a) { return a.token; }, function (e) {
+            if (e.badpass) throw new Error('That is not the passphrase. Check for typos and try again.');
+            throw e;
+          });
+        });
+      }, function () { throw new Error('Could not reach GitHub. Check your connection and try again.'); });
+    }
+    /* After connect(): store the token for the other person to use. */
+    function writeAccess(t) {
+      var path = repoPath + '/contents/access.json';
+      return seal({ token: t }).then(function (content) {
+        return api(path + '?ref=' + REPO.branch).then(function (j) { return j.sha; }, function () { return null; }).then(function (fileSha) {
+          var body = { message: 'Update access', content: btoa(content), branch: REPO.branch };
+          if (fileSha) body.sha = fileSha;
+          return api(path, { method: 'PUT', body: body });
+        });
+      }).catch(function () { throw new Error('Could not save the access token to GitHub. Check that the token has Contents set to Read and write.'); });
+    }
+
+    return { connect: connect, changed: changed, isDirty: function () { return dirty; },
+      readAccess: readAccess, writeAccess: writeAccess };
   })();
 
   /* ------------------------------------------------------------------ */
@@ -1669,41 +1706,119 @@ window.INVITATION = (function () {
     } catch (e) {}
   }
 
-  var isNew = false;
-  function enter(token, pass, remember) {
+  var PEOPLE = [I.COUPLE.shortOne, I.COUPLE.shortTwo];
+  var isNew = false, setup = false, currentPass = '';
+
+  function showSetup(why) {
+    setup = true;
+    $('g-setup').hidden = false;
+    if (why) $('g-err').textContent = why;
+    $('g-go').textContent = isNew ? 'Lock the new guest list' : 'Save and open';
+  }
+
+  function enter(pass, remember, who) {
     var go = $('g-go'), err = $('g-err');
-    var label = function () { go.disabled = false; go.textContent = isNew ? 'Lock the new guest list' : 'Open the manifest'; };
+    var idle = function () { go.disabled = false; go.textContent = setup ? (isNew ? 'Lock the new guest list' : 'Save and open') : 'Open the guest list'; };
     go.disabled = true; go.textContent = 'Opening…'; err.textContent = '';
-    return Sync.connect(token, pass, isNew).then(function (res) {
+
+    var token = setup ? $('g-token').value.trim() : '';
+    var opened = setup
+      ? Sync.connect(token, pass, isNew).then(function (res) {
+          if (res === 'new') return 'new';
+          return Sync.writeAccess(token).then(function () { return 'ok'; });
+        })
+      : Sync.readAccess(pass).then(function (t) {
+          if (!t) return 'nosetup';
+          return Sync.connect(t, pass, false).catch(function (e) {
+            if (/did not accept/.test(e.message)) throw new Error('The access to GitHub has expired. Filippo needs to renew it: use “Set up or renew access” below.');
+            throw e;
+          });
+        });
+
+    return opened.then(function (res) {
+      if (res === 'nosetup') { idle(); showSetup('The guest list has not been set up yet. Filippo: fill in the setup below.'); return; }
       if (res === 'new') {
-        isNew = true; label();
+        isNew = true; showSetup(); idle();
         $('g-confirmwrap').hidden = false; $('g-newnote').hidden = false;
         $('g-confirm').focus();
         return;
       }
-      writeAuth({ token: token, pass: pass }, remember);
-      $('gatewrap').hidden = true; $('app').hidden = false;
-      render();
-    }, function (e) { label(); err.textContent = e.message; });
+      currentPass = pass;
+      writeAuth({ pass: pass, who: who || '' }, remember);
+      if (who) return openApp(who, remember);
+      /* first time on this device: ask once who is using it */
+      $('gate').hidden = true; $('whoami').hidden = false;
+      $('whobtns').innerHTML = PEOPLE.map(function (p) {
+        return '<button class="btn primary" type="button" data-who="' + esc(p) + '" style="font-size:17px;padding:12px 22px">I’m ' + esc(p) + '</button>';
+      }).join('');
+      $('whobtns').onclick = function (e) {
+        var b = e.target.closest('[data-who]'); if (!b) return;
+        writeAuth({ pass: pass, who: b.getAttribute('data-who') }, remember);
+        openApp(b.getAttribute('data-who'), remember);
+      };
+    }, function (e) { idle(); err.textContent = e.message; });
   }
+
+  function openApp(who) {
+    myId = who;
+    $('othername').textContent = PEOPLE[0] === who ? PEOPLE[1] : PEOPLE[0];
+    $('gatewrap').hidden = true; $('app').hidden = false;
+    var wt = $('whotext');
+    if (/^Saved/.test(wt.textContent) && wt.textContent.indexOf(who) === -1) wt.textContent += ' · ' + who;
+    render();
+  }
+
+  /* A link that signs the other person in with one tap. It carries the
+     passphrase after the #, which browsers never send to GitHub, but
+     anyone holding the link can open the list, so it goes to them only. */
+  function inviteLink() {
+    var other = PEOPLE[0] === myId ? PEOPLE[1] : PEOPLE[0];
+    var payload = b64(new TextEncoder().encode(JSON.stringify({ p: currentPass, w: other })))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return location.origin + location.pathname + '#join=' + payload;
+  }
+  $('invite').addEventListener('click', function () {
+    var other = $('othername').textContent;
+    var link = inviteLink();
+    if (navigator.share) {
+      navigator.share({ text: 'Our wedding guest list. Tap to open it:\n' + link }).catch(function () {});
+    } else copy(link, 'Link copied. Send it to ' + other + ' only: tapping it opens the list and keeps them signed in.');
+  });
 
   $('gate').addEventListener('submit', function (e) {
     e.preventDefault();
-    var token = $('g-token').value.trim(), pass = $('g-pass').value;
-    if (pass.length < 8) { $('g-err').textContent = 'Use a passphrase of at least 8 characters. A short sentence works well.'; return; }
+    var pass = $('g-pass').value;
+    if (setup && !$('g-token').value.trim()) { $('g-err').textContent = 'Paste the GitHub access token first.'; return; }
+    if (isNew && pass.length < 8) { $('g-err').textContent = 'Use a passphrase of at least 8 characters. A short sentence works well.'; return; }
     if (isNew && $('g-confirm').value !== pass) { $('g-err').textContent = 'The two passphrases do not match.'; return; }
-    enter(token, pass, $('g-remember').checked);
+    var saved = readAuth();
+    enter(pass, $('g-remember').checked, saved && saved.a && saved.a.who);
   });
+  $('g-setuplink').addEventListener('click', function () { showSetup(); $('g-token').focus(); });
   $('lock').addEventListener('click', function () {
     try { localStorage.removeItem(AUTH_KEY); sessionStorage.removeItem(AUTH_KEY); } catch (e) {}
     location.reload();
   });
 
-  var remembered = readAuth();
-  if (remembered && remembered.a && remembered.a.token && remembered.a.pass) {
-    $('g-token').value = remembered.a.token; $('g-pass').value = remembered.a.pass;
-    $('g-remember').checked = remembered.remember;
-    enter(remembered.a.token, remembered.a.pass, remembered.remember);
+  /* Arriving from a sign-in link: take the passphrase, then wipe it from
+     the address bar and history straight away. */
+  var join = /^#join=([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (join) {
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      var t = join[1].replace(/-/g, '+').replace(/_/g, '/');
+      while (t.length % 4) t += '=';
+      var j = JSON.parse(new TextDecoder().decode(unb64(t)));
+      $('g-pass').value = j.p || '';
+      enter(j.p || '', true, PEOPLE.indexOf(j.w) !== -1 ? j.w : '');
+    } catch (e) { $('g-err').textContent = 'That sign-in link is damaged. Ask for a new one, or type the passphrase.'; }
+  } else {
+    var remembered = readAuth();
+    if (remembered && remembered.a && remembered.a.pass) {
+      $('g-pass').value = remembered.a.pass;
+      $('g-remember').checked = remembered.remember;
+      enter(remembered.a.pass, remembered.remember, remembered.a.who);
+    }
   }
 })();
 </script>
