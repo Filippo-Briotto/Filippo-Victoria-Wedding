@@ -354,7 +354,7 @@ window.INVITATION = (function () {
      someone you hand the address to. The guest's name and note ride in the URL
      fragment (after the #), which browsers never send to the server -- GitHub
      sees a request for the page and nothing else. */
-  var SITE = 'https://filippo-briotto.github.io/Filippo-Victoria-Wedding/56e45cd6399d/';
+  var SITE = 'https://filippo-victoria-wedding.filippobriotto.workers.dev/56e45cd6399d/';
 
   var FLIGHT = '1D0';
   var CLASS = 'First';
@@ -1913,13 +1913,18 @@ window.INVITATION = (function () {
   }
 
   /* A link that signs the other person in with one tap. It carries the
-     passphrase after the #, which browsers never send to GitHub, but
-     anyone holding the link can open the list, so it goes to them only. */
+     passphrase after the #, which browsers never send to the server, but
+     anyone holding the link can open the list, so it goes to them only.
+     It always points at the same host as the invitations (SITE), whichever
+     address this page was opened from: github.io is unreachable from some
+     networks, Namibia's among them. */
   function inviteLink() {
     var other = PEOPLE[0] === myId ? PEOPLE[1] : PEOPLE[0];
     var payload = b64(new TextEncoder().encode(JSON.stringify({ p: currentPass, w: other })))
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return location.origin + location.pathname + '#join=' + payload;
+    var folder = location.pathname.split('/').filter(Boolean).pop() || '';
+    var home = /^[0-9a-f]{12}$/.test(folder) ? I.SITE.replace(/[^\/]+\/?$/, '') + folder + '/' : location.origin + location.pathname;
+    return home + '#join=' + payload;
   }
   $('invite').addEventListener('click', function () {
     var other = $('othername').textContent;
