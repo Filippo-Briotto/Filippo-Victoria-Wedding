@@ -66,6 +66,33 @@ in a new tab** and save from there, or **Copy the HTML** and paste it into a fil
 `minter.html` needs nothing beside it — no `assets/` folder, no network. If you ever see a banner
 saying *“this is the development copy”*, you have opened `index.html` by mistake.
 
+## The guest list
+
+**[Passenger Manifest 1D0](https://claude.ai/artifact/7eYNEUv3BVsjk7QccaQhop)** is the shared
+guest list. It is a claude.ai page with its own database, so whatever either of you changes shows
+up on the other's screen straight away, on a laptop or a phone.
+
+- **Add passengers** one at a time, or **Paste a list**: one per line, and a phone, email and
+  group can go on the same line separated by tabs (straight from a spreadsheet) or semicolons.
+- Open a passenger to set the names printed on the invitation, the language and the **personal
+  note in the letter**. Their invitation link is built from those, the same way the minting desk
+  builds it.
+- **Copy message** gives you the link plus a short covering text (edit it once under **Message
+  text**, in English and Italian). **WhatsApp** opens a chat with it filled in.
+- **Mark as sent** records when, how, and which of you sent it. If you change the name, note or
+  language afterwards, the row says *changed since*, because the guest still has the old link.
+- **RSVP** per leg (Amsterdam, Windhoek, Italy), **Our notes** for things the guest never sees,
+  and **Export CSV** for a spreadsheet copy.
+
+**Sharing it:** the page starts private to its owner. Open it, use **Share**, and add your partner
+as an **Editor** (or Contributor) so they can make changes. A Viewer can read the list but not
+change it.
+
+The source is [`manifest/src.html`](manifest/src.html). `node tools/build-manifest.js` inlines
+`assets/invitation.js` into it to make `manifest/manifest.html`, which is the file published. Rebuild
+and republish after changing `SITE` or the payload format, so that new links stay in step with the site.
+The guests themselves live in the page's database, not in this repo.
+
 ## Changing the wedding details
 
 Everything factual lives in one place: the `LEGS` array at the top of
@@ -92,6 +119,7 @@ just below, in both languages.
 |---|---|
 | `minter.html` | **the minting desk, one self-contained file** — this is the one to use |
 | `index.html` | the same desk, loading its scripts from `assets/` — work on this one |
+| `manifest/` | the shared guest list: `src.html` and its built, published `manifest.html` |
 | `assets/invitation.js` | **the wedding facts**, both languages of copy, the drawn marks |
 | `assets/template.js` | the invitation document itself: markup, styles, the envelope |
 | `assets/fonts.js` | Cormorant Garamond + Courier Prime, base64'd (generated) |

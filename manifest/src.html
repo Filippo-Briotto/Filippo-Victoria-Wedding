@@ -1,0 +1,915 @@
+<title>Passenger Manifest 1D0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Courier+Prime:wght@400;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+  /* Layout: a departure-board manifest. Summary strip on top, the passenger
+     list beneath, and a check-in drawer that slides over from the right
+     (full screen on a phone) for one passenger at a time. */
+  :root{
+    --bg:#f3f4f2;        /* ticket stock */
+    --panel:#fbfbfa;
+    --fg:#1b2430;        /* airline navy ink */
+    --muted:#5f6a76;
+    --line:#d9dcdc;
+    --line-2:#c3c8ca;
+    --accent:#1f4a73;    /* livery blue */
+    --accent-ink:#ffffff;
+    --seal-ink:#ffffff;
+    --wax:#a3301f;       /* the red wax seal on the envelope */
+    --odelela:#c4246b;   /* the Namibian print */
+    --ok:#2e7048;
+    --ok-bg:#e3efe6;
+    --warn:#8a5a00;
+    --warn-bg:#f6ecd4;
+    --sent-bg:#f4e2de;
+    --todo-bg:#e6e9ec;
+    --shadow:0 18px 50px rgba(20,30,45,.18);
+    --display:"Cormorant Garamond",Garamond,"Times New Roman",serif;
+    --body:Figtree,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"Courier Prime","Courier New",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#111821; --panel:#18212c; --fg:#e7ebef; --muted:#9aa6b2; --line:#26313d; --line-2:#344252;
+    --accent:#8fb8de; --accent-ink:#0d1620; --seal-ink:#1a0d0a; --wax:#e0705c; --odelela:#ec6aa5;
+    --ok:#7fca98; --ok-bg:#1c3326; --warn:#e3b45a; --warn-bg:#3a2e14; --sent-bg:#3a221e; --todo-bg:#232e3a;
+    --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#111821; --panel:#18212c; --fg:#e7ebef; --muted:#9aa6b2; --line:#26313d; --line-2:#344252;
+    --accent:#8fb8de; --accent-ink:#0d1620; --seal-ink:#1a0d0a; --wax:#e0705c; --odelela:#ec6aa5;
+    --ok:#7fca98; --ok-bg:#1c3326; --warn:#e3b45a; --warn-bg:#3a2e14; --sent-bg:#3a221e; --todo-bg:#232e3a;
+    --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{background:var(--bg); color:var(--fg); font:15px/1.5 var(--body); margin:0}
+  .wrap{max-width:1180px; margin:0 auto; padding-inline:clamp(16px,3vw,32px); padding-block:24px 64px}
+  button,input,select,textarea{font:inherit; color:inherit}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* ---------- masthead ---------- */
+  .mast{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 24px;
+    padding-bottom:18px; border-bottom:2px solid var(--fg)}
+  .mast h1{font:600 clamp(30px,5vw,44px)/1 var(--display); margin:0; letter-spacing:.005em; text-wrap:balance}
+  .mast h1 em{font:700 .62em/1 var(--mono); font-style:normal; letter-spacing:.06em; color:var(--wax); vertical-align:.12em}
+  .flightline{font:400 12px/1.4 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
+    display:flex; flex-wrap:wrap; gap:4px 18px; margin-top:8px}
+  .flightline b{color:var(--fg); font-weight:700}
+  .who{font:400 12px/1.4 var(--mono); color:var(--muted); letter-spacing:.06em; text-align:right}
+  .who .live{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--line-2); margin-right:6px; vertical-align:1px}
+  .who .live.on{background:var(--ok)}
+
+  /* ---------- summary strip: a departures board ---------- */
+  .board{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-bottom:1px solid var(--line); margin-bottom:20px}
+  .board button{all:unset; cursor:pointer; padding:14px 16px 12px; border-right:1px solid var(--line); display:grid; gap:2px}
+  .board button:last-child{border-right:0}
+  .board button:hover{background:var(--panel)}
+  .board button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+  .board button[aria-pressed="true"]{background:var(--panel); box-shadow:inset 0 -3px 0 var(--accent)}
+  .board .n{font:700 clamp(24px,4vw,32px)/1 var(--mono); font-variant-numeric:tabular-nums}
+  .board .l{font:400 11px/1.3 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  @media (max-width:560px){ .board{grid-template-columns:repeat(2,minmax(0,1fr))} .board button:nth-child(2){border-right:0} .board button:nth-child(-n+2){border-bottom:1px solid var(--line)} }
+
+  /* ---------- toolbar ---------- */
+  .tools{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px}
+  .search{flex:1 1 220px; min-width:0; position:relative}
+  .search input{width:100%; padding:9px 12px; border:1px solid var(--line-2); border-radius:4px; background:var(--panel)}
+  .btn{display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--line-2); border-radius:4px;
+    background:var(--panel); cursor:pointer; font-weight:500; white-space:nowrap; text-decoration:none; color:var(--fg); font-size:14px}
+  .btn:hover{border-color:var(--fg)}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn.seal{background:var(--wax); border-color:var(--wax); color:var(--seal-ink)}
+  .btn.ghost{background:transparent; border-color:transparent; color:var(--muted)}
+  .btn.ghost:hover{color:var(--fg); border-color:var(--line-2)}
+  .btn.danger{color:var(--wax); border-color:var(--wax); background:transparent}
+  .btn.small{padding:5px 10px; font-size:13px}
+  .btn[disabled]{opacity:.45; cursor:not-allowed}
+
+  /* ---------- the manifest ---------- */
+  .manifest{border-top:1px solid var(--line)}
+  .row{display:grid; grid-template-columns:48px minmax(0,2.2fr) minmax(0,1.2fr) 150px minmax(0,1.4fr) 190px; gap:14px; align-items:center;
+    padding:11px 8px; border-bottom:1px solid var(--line); cursor:pointer}
+  .row:hover{background:var(--panel)}
+  .row:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+  .row.head{cursor:default; font:400 11px/1.3 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--muted); padding-block:8px}
+  .row.head:hover{background:none}
+  .seat{font:700 13px/1 var(--mono); color:var(--muted); font-variant-numeric:tabular-nums}
+  .pname{font-weight:600; overflow-wrap:anywhere}
+  .psub{font:400 12px/1.35 var(--mono); color:var(--muted); letter-spacing:.04em; overflow-wrap:anywhere}
+  .group{font-size:13px; color:var(--muted); overflow-wrap:anywhere}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px;
+    font:700 11px/1.4 var(--mono); letter-spacing:.1em; text-transform:uppercase; white-space:nowrap}
+  .pill::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor}
+  .pill.todo{background:var(--todo-bg); color:var(--muted)}
+  .pill.sent{background:var(--sent-bg); color:var(--wax)}
+  .pill.replied{background:var(--ok-bg); color:var(--ok)}
+  .sentinfo{font-size:13px; color:var(--muted)}
+  .sentinfo .stale{color:var(--warn); font-weight:600}
+  .rowact{display:flex; gap:6px; justify-content:flex-end}
+  .rsvpdots{display:inline-flex; gap:3px; margin-left:4px}
+  .rsvpdots i{display:inline-block; width:8px; height:8px; border-radius:2px; background:var(--line-2)}
+  .rsvpdots i.yes{background:var(--ok)} .rsvpdots i.no{background:var(--wax)} .rsvpdots i.maybe{background:var(--warn)}
+  @media (max-width:820px){
+    .row.head{display:none}
+    .row{grid-template-columns:36px minmax(0,1fr) auto; grid-template-areas:"seat name status" "seat meta act"; row-gap:6px}
+    .row>.seat{grid-area:seat; align-self:start; padding-top:3px}
+    .row>.c-name{grid-area:name}
+    .row>.c-group{display:none}
+    .row>.c-status{grid-area:status; justify-self:end}
+    .row>.c-sent{grid-area:meta}
+    .row>.rowact{grid-area:act}
+  }
+
+  .empty{padding:48px 16px; text-align:center; color:var(--muted); border-bottom:1px solid var(--line)}
+  .empty h2{font:600 26px/1.2 var(--display); color:var(--fg); margin:0 0 8px}
+  .empty p{margin:0 auto 18px; max-width:46ch}
+  .empty .tools{justify-content:center; margin:0}
+
+  /* ---------- check-in drawer ---------- */
+  .scrim{position:fixed; inset:0; background:rgba(10,16,24,.38); z-index:20}
+  .drawer{position:fixed; top:0; right:0; bottom:0; width:min(560px,100%); background:var(--panel); z-index:21;
+    box-shadow:var(--shadow); display:flex; flex-direction:column;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px)}
+  .drawer header{display:flex; align-items:flex-start; gap:12px; padding:18px 20px 14px; border-bottom:1px solid var(--line)}
+  .drawer header h2{font:600 28px/1.1 var(--display); margin:0; overflow-wrap:anywhere; flex:1; min-width:0}
+  .drawer .body{overflow-y:auto; padding:18px 20px 28px; display:grid; gap:22px; flex:1}
+  .drawer .stub{border-left:4px solid var(--odelela); padding-left:12px}
+  section.blk{display:grid; gap:10px}
+  section.blk h3{margin:0; font:400 11px/1.3 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+  .grid3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+  @media (max-width:480px){ .grid3{grid-template-columns:1fr} }
+  label.f{display:grid; gap:4px; font-size:13px; color:var(--muted); min-width:0}
+  label.f input,label.f textarea,label.f select,.ta{width:100%; padding:8px 10px; border:1px solid var(--line-2); border-radius:4px; background:var(--bg); color:var(--fg)}
+  label.f input.mono{font-family:var(--mono); letter-spacing:.04em}
+  textarea{resize:vertical; min-height:84px; line-height:1.45}
+  .hint{font-size:12px; color:var(--muted); margin:0}
+  .seg{display:inline-flex; border:1px solid var(--line-2); border-radius:4px; overflow:hidden}
+  .seg button{all:unset; cursor:pointer; padding:6px 12px; font-size:13px; border-right:1px solid var(--line-2)}
+  .seg button:last-child{border-right:0}
+  .seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink)}
+  .seg button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+  .legs{display:grid; gap:8px}
+  .leg{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:8px 10px; border:1px solid var(--line); border-radius:4px}
+  .leg .route{font:700 13px/1.3 var(--mono); letter-spacing:.06em}
+  .leg .route small{display:block; font:400 12px/1.3 var(--body); color:var(--muted); letter-spacing:0}
+  .seg.rsvp button[data-v="yes"][aria-pressed="true"]{background:var(--ok); color:#fff}
+  .seg.rsvp button[data-v="no"][aria-pressed="true"]{background:var(--wax); color:#fff}
+  .seg.rsvp button[data-v="maybe"][aria-pressed="true"]{background:var(--warn); color:#fff}
+  .linkbox{font:400 12px/1.45 var(--mono); background:var(--bg); border:1px dashed var(--line-2); border-radius:4px; padding:8px 10px;
+    overflow-wrap:anywhere; user-select:all; max-height:5.8em; overflow:auto}
+  .msgbox{white-space:pre-wrap; font-size:14px; background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:10px 12px; user-select:text}
+  .actions{display:flex; flex-wrap:wrap; gap:8px}
+  .sentcard{display:grid; gap:8px; padding:12px 14px; border-radius:4px; background:var(--sent-bg); color:var(--fg)}
+  .sentcard.todo{background:var(--todo-bg)}
+  .sentcard strong{font:700 12px/1.3 var(--mono); letter-spacing:.12em; text-transform:uppercase}
+  .warnline{background:var(--warn-bg); color:var(--warn); padding:8px 10px; border-radius:4px; font-size:13px}
+  .meta{font-size:12px; color:var(--muted)}
+  .confirm{display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px; border:1px solid var(--wax); border-radius:4px; color:var(--wax); font-size:13px}
+
+  /* ---------- dialogs (paste list, message templates) ---------- */
+  .modal{position:fixed; z-index:31; left:50%; top:50%; transform:translate(-50%,-50%); width:min(620px,calc(100% - 32px));
+    max-height:calc(100% - 48px); overflow:auto; background:var(--panel); border-radius:6px; box-shadow:var(--shadow); padding:20px; display:grid; gap:14px}
+  .modal h2{font:600 26px/1.15 var(--display); margin:0}
+  .modal .scrim{z-index:-1}
+  .scrim.top{z-index:30}
+
+  .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom,0px)); z-index:40;
+    background:var(--fg); color:var(--bg); padding:9px 16px; border-radius:4px; font-size:14px; box-shadow:var(--shadow); max-width:calc(100% - 32px)}
+  .readonly-note{background:var(--warn-bg); color:var(--warn); padding:10px 12px; border-radius:4px; margin-bottom:14px; font-size:14px}
+  footer.foot{margin-top:28px; font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:8px 18px}
+  @media (prefers-reduced-motion:no-preference){ .drawer{animation:slide .22s ease-out} @keyframes slide{from{transform:translateX(24px); opacity:.6}} }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1>Passenger Manifest <em>1D0</em></h1>
+      <div class="flightline">
+        <span>Briotto Family Airline</span>
+        <span><b>HOM→AMS</b> 28 Dec 2026</span>
+        <span><b>AMS→WDH</b> Sep 2027</span>
+        <span><b>WDH→ITA</b> TBA</span>
+      </div>
+    </div>
+    <div class="who" id="who"><span class="live" id="live"></span><span id="whotext">Connecting to the shared list…</span></div>
+  </header>
+
+  <nav class="board" id="board" aria-label="Filter passengers">
+    <button type="button" data-f="all" aria-pressed="true"><span class="n" id="c-all">0</span><span class="l">Passengers</span></button>
+    <button type="button" data-f="todo" aria-pressed="false"><span class="n" id="c-todo">0</span><span class="l">To send</span></button>
+    <button type="button" data-f="sent" aria-pressed="false"><span class="n" id="c-sent">0</span><span class="l">Sent, no reply</span></button>
+    <button type="button" data-f="replied" aria-pressed="false"><span class="n" id="c-replied">0</span><span class="l">Replied</span></button>
+  </nav>
+
+  <div class="readonly-note" id="ronote" hidden>You can see the manifest but not change it. Ask the owner to share it with you as an Editor or Contributor.</div>
+
+  <div class="tools">
+    <div class="search"><input type="search" id="q" placeholder="Search names, groups, notes…" aria-label="Search passengers"></div>
+    <button class="btn primary" type="button" id="add" data-write>+ Add passenger</button>
+    <button class="btn" type="button" id="paste" data-write>Paste a list</button>
+    <button class="btn ghost" type="button" id="tpl">Message text</button>
+    <button class="btn ghost" type="button" id="export">Export CSV</button>
+  </div>
+
+  <div class="manifest" id="manifest" role="list"></div>
+
+  <footer class="foot">
+    <span>Every change saves on its own and shows up for everyone who has this page open.</span>
+    <span>Guest links open <span id="sitehost"></span></span>
+  </footer>
+</div>
+
+<div id="layer"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/*INVITATION_JS*/
+</script>
+<script>
+(function () {
+  'use strict';
+
+  var I = window.INVITATION;
+  var LEGS = [
+    { id: 'ams', route: 'HOM → AMS', what: 'The vows · Amsterdam · 28 Dec 2026' },
+    { id: 'wdh', route: 'AMS → WDH', what: 'Traditional ceremony · Windhoek · Sep 2027' },
+    { id: 'ita', route: 'WDH → ITA', what: 'The dinner · Italy · TBA' }
+  ];
+  var DEFAULT_TPL = {
+    en: 'Dear {first},\n\nFlight 1D0 is boarding, and there is a seat with your name on it. Your invitation is here:\n{link}\n\nWith love,\nFilippo & Victoria',
+    it: 'Ciao {first},\n\nIl volo 1D0 è in partenza e c’è un posto con il tuo nome. Il tuo invito è qui:\n{link}\n\nCon affetto,\nFilippo & Victoria'
+  };
+
+  var db = null, user = null, myId = null, canWrite = true;
+  var guests = {};          // id -> data
+  var settings = { tpl: { en: DEFAULT_TPL.en, it: DEFAULT_TPL.it } };
+  var filter = 'all', query = '';
+  var openId = null;        // guest in the drawer
+  var names = {};           // user id -> display name
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = I.esc;
+
+  $('sitehost').textContent = I.SITE.replace(/^https?:\/\//, '');
+
+  /* ------------------------------------------------------------------ */
+  /* Derived values                                                      */
+  /* ------------------------------------------------------------------ */
+
+  function forms(g) {
+    var auto = I.nameForms(g.name);
+    return {
+      full: (g.full || '').trim() || auto.full,
+      first: (g.first || '').trim() || auto.first,
+      short: (g.short || '').trim() || auto.short
+    };
+  }
+
+  /* Same payload the minting desk puts in a link. */
+  function linkFor(g) {
+    var f = forms(g);
+    return I.guestLink({ t: (g.name || '').trim(), n: (g.note || '').trim(), l: g.lang === 'it' ? 'it' : 'en',
+      f: f.full, r: f.first, s: f.short });
+  }
+
+  function messageFor(g) {
+    var lang = g.lang === 'it' ? 'it' : 'en';
+    var tpl = (settings.tpl && settings.tpl[lang]) || DEFAULT_TPL[lang];
+    var f = forms(g);
+    return tpl.replace(/\{first\}/g, f.first || g.name || '').replace(/\{name\}/g, g.name || '').replace(/\{link\}/g, linkFor(g));
+  }
+
+  function hasReply(g) {
+    var r = g.rsvp || {};
+    return LEGS.some(function (l) { return !!r[l.id]; });
+  }
+  function stateOf(g) {
+    if (g.status !== 'sent') return 'todo';
+    return hasReply(g) ? 'replied' : 'sent';
+  }
+  function isStale(g) { return g.status === 'sent' && g.sentLink && g.sentLink !== linkFor(g); }
+
+  function when(ms) {
+    if (!ms) return '';
+    var d = new Date(ms);
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) +
+      (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '');
+  }
+  function who(id) {
+    if (!id) return '';
+    if (id === myId) return 'you';
+    return names[id] || 'someone';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Writes: one at a time per guest, coalesced while typing             */
+  /* ------------------------------------------------------------------ */
+
+  var queues = {};
+  function patch(id, fields, now) {
+    if (!db || !canWrite) return;
+    var q = queues[id] || (queues[id] = { p: {}, t: null, chain: Promise.resolve() });
+    Object.keys(fields).forEach(function (k) {
+      if (k === 'rsvp' && q.p.rsvp) Object.assign(q.p.rsvp, fields.rsvp);
+      else q.p[k] = fields[k];
+    });
+    /* show it right away; the snapshot confirms it */
+    var g = guests[id];
+    if (g) {
+      Object.keys(fields).forEach(function (k) {
+        if (k === 'rsvp') g.rsvp = Object.assign({}, g.rsvp || {}, fields.rsvp); else g[k] = fields[k];
+      });
+    }
+    clearTimeout(q.t);
+    q.t = setTimeout(function () { flush(id); }, now ? 0 : 450);
+    scheduleRender();
+  }
+  function flush(id) {
+    var q = queues[id];
+    if (!q || !Object.keys(q.p).length) return q ? q.chain : Promise.resolve();
+    var body = q.p; q.p = {};
+    body.updatedAt = Date.now();
+    if (myId) body.updatedBy = myId;
+    q.chain = q.chain.then(function () {
+      return db.doc('guests/' + id).update(body);
+    }).catch(function (e) { writeFailed(e); });
+    return q.chain;
+  }
+  function writeFailed(e) {
+    var code = e && e.code;
+    if (code === 'invalid_argument' && canWrite === null) { setWritable(false); return; }
+    if (code === 'quota_exceeded') toast('The list is full. Delete some passengers to add more.');
+    else toast('That change did not save. Check your connection and try again.');
+  }
+  function newId() { return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function createGuest(data) {
+    var id = newId();
+    var now = Date.now();
+    var g = Object.assign({ name: '', full: '', first: '', short: '', lang: 'en', note: '', phone: '', email: '',
+      group: '', internal: '', status: 'todo', sentAt: 0, sentBy: '', sentVia: '', sentLink: '',
+      rsvp: { ams: '', wdh: '', ita: '' }, createdAt: now, createdBy: myId || '', updatedAt: now, updatedBy: myId || '' }, data);
+    guests[id] = g;
+    var q = queues[id] = { p: {}, t: null, chain: Promise.resolve() };
+    q.chain = db.doc('guests/' + id).set(g).catch(function (e) { delete guests[id]; writeFailed(e); scheduleRender(); });
+    scheduleRender();
+    return id;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The manifest                                                        */
+  /* ------------------------------------------------------------------ */
+
+  var renderPending = false;
+  function scheduleRender() {
+    if (renderPending) return;
+    renderPending = true;
+    requestAnimationFrame(function () { renderPending = false; render(); });
+  }
+
+  function sorted() {
+    return Object.keys(guests).map(function (id) { return { id: id, g: guests[id] }; })
+      .sort(function (a, b) { return (a.g.createdAt || 0) - (b.g.createdAt || 0) || (a.id < b.id ? -1 : 1); });
+  }
+
+  function render() {
+    var all = sorted();
+    var counts = { all: all.length, todo: 0, sent: 0, replied: 0 };
+    all.forEach(function (x, i) { x.seat = i + 1; counts[stateOf(x.g)]++; });
+    Object.keys(counts).forEach(function (k) { $('c-' + k).textContent = counts[k]; });
+
+    var q = query.toLowerCase();
+    var rows = all.filter(function (x) {
+      if (filter !== 'all' && stateOf(x.g) !== filter) return false;
+      if (!q) return true;
+      var g = x.g;
+      return [g.name, g.group, g.note, g.internal, g.phone, g.email].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+
+    var m = $('manifest');
+    if (!all.length) {
+      m.innerHTML = '<div class="empty">' +
+        '<h2>No passengers boarded yet</h2>' +
+        '<p>Everyone you invite goes on this list. Add people one at a time, or paste the whole list from a spreadsheet or your notes, one name per line.</p>' +
+        (canWrite === false ? '' : '<div class="tools"><button class="btn primary" type="button" data-act="add">+ Add passenger</button>' +
+        '<button class="btn" type="button" data-act="paste">Paste a list</button></div>') +
+        '</div>';
+      updateDrawer();
+      return;
+    }
+    if (!rows.length) {
+      m.innerHTML = '<div class="empty"><p>No passengers match. Clear the search or pick another filter.</p></div>';
+      updateDrawer();
+      return;
+    }
+
+    var html = '<div class="row head" aria-hidden="true"><span>Seat</span><span>Passenger</span><span>Group</span><span>Status</span><span>Sent</span><span></span></div>';
+    rows.forEach(function (x) {
+      var g = x.g, st = stateOf(g), f = forms(g);
+      var r = g.rsvp || {};
+      var dots = '<span class="rsvpdots" title="RSVP: Amsterdam, Windhoek, Italy">' + LEGS.map(function (l) {
+        return '<i class="' + esc(r[l.id] || '') + '"></i>'; }).join('') + '</span>';
+      var sent = g.status === 'sent'
+        ? esc(when(g.sentAt)) + (g.sentVia ? ' · ' + esc(g.sentVia) : '') + (g.sentBy ? ' · ' + esc(who(g.sentBy)) : '') +
+          (isStale(g) ? ' <span class="stale" title="The name, note or language changed after this was sent">· changed since</span>' : '')
+        : '';
+      html += '<div class="row" role="listitem" tabindex="0" data-id="' + esc(x.id) + '">' +
+        '<span class="seat">' + String(x.seat).padStart(2, '0') + '</span>' +
+        '<span class="c-name"><div class="pname">' + (esc(g.name) || '<span class="psub">Unnamed</span>') + '</div>' +
+          '<div class="psub">' + esc(f.short) + ' · ' + (g.lang === 'it' ? 'IT' : 'EN') + (g.note ? ' · note' : '') + '</div></span>' +
+        '<span class="c-group group">' + esc(g.group) + '</span>' +
+        '<span class="c-status"><span class="pill ' + st + '">' + (st === 'todo' ? 'To send' : st === 'sent' ? 'Sent' : 'Replied') + '</span>' + (hasReply(g) ? dots : '') + '</span>' +
+        '<span class="c-sent sentinfo">' + sent + '</span>' +
+        '<span class="rowact">' +
+          '<button class="btn small" type="button" data-act="copylink">Copy link</button>' +
+          (g.status === 'sent' || canWrite === false ? '' : '<button class="btn small seal" type="button" data-act="marksent">Mark sent</button>') +
+        '</span>' +
+      '</div>';
+    });
+    m.innerHTML = html;
+    updateDrawer();
+  }
+
+  $('manifest').addEventListener('click', function (e) {
+    var act = e.target.closest('[data-act]');
+    var row = e.target.closest('.row[data-id]');
+    if (act) {
+      e.stopPropagation();
+      var a = act.getAttribute('data-act');
+      if (a === 'add') return addOne();
+      if (a === 'paste') return openPaste();
+      var id = row && row.getAttribute('data-id');
+      if (!id || !guests[id]) return;
+      if (a === 'copylink') return copy(linkFor(guests[id]), 'Link copied. Paste it to ' + (forms(guests[id]).first || 'them') + '.');
+      if (a === 'marksent') return markSent(id, '');
+      return;
+    }
+    if (row) openDrawer(row.getAttribute('data-id'));
+  });
+  $('manifest').addEventListener('keydown', function (e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('row') && e.target.dataset.id) {
+      e.preventDefault(); openDrawer(e.target.dataset.id);
+    }
+  });
+
+  $('board').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-f]'); if (!b) return;
+    filter = b.getAttribute('data-f');
+    Array.prototype.forEach.call($('board').querySelectorAll('button'), function (x) {
+      x.setAttribute('aria-pressed', String(x === b)); });
+    try { localStorage.setItem('manifest-filter', filter); } catch (err) {}
+    render();
+  });
+  $('q').addEventListener('input', function () { query = this.value.trim(); render(); });
+  $('add').addEventListener('click', addOne);
+  $('paste').addEventListener('click', openPaste);
+  $('tpl').addEventListener('click', openTemplates);
+  $('export').addEventListener('click', exportCsv);
+
+  function addOne() {
+    if (!db) return toast('Still connecting to the shared list.');
+    var id = createGuest({});
+    openDrawer(id, true);
+  }
+
+  function markSent(id, via) {
+    var g = guests[id];
+    patch(id, { status: 'sent', sentAt: Date.now(), sentBy: myId || '', sentVia: via || '', sentLink: linkFor(g) }, true);
+    toast((forms(g).first || g.name || 'Passenger') + ' marked as sent.');
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Check-in drawer                                                     */
+  /* ------------------------------------------------------------------ */
+
+  var confirmingDelete = false;
+
+  function openDrawer(id, focusName) {
+    openId = id; confirmingDelete = false;
+    var layer = $('layer');
+    layer.innerHTML = '<div class="scrim" data-close></div>' +
+      '<aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title">' +
+        '<header><h2 id="d-title"></h2><button class="btn ghost" type="button" data-close aria-label="Close">Close</button></header>' +
+        '<div class="body" id="d-body"></div>' +
+      '</aside>';
+    buildDrawerBody();
+    updateDrawer(true);
+    if (focusName) $('f-name').focus(); else layer.querySelector('[data-close].btn').focus();
+  }
+  function closeDrawer() {
+    if (openId) flush(openId);
+    var wasId = openId;
+    openId = null; $('layer').innerHTML = '';
+    var row = document.querySelector('.row[data-id="' + wasId + '"]');
+    if (row) row.focus();
+  }
+
+  function buildDrawerBody() {
+    var ro = canWrite === false ? ' disabled' : '';
+    $('d-body').innerHTML =
+      '<section class="blk stub">' +
+        '<h3>Passenger</h3>' +
+        '<label class="f">Name as you would say it<input id="f-name" data-k="name" autocomplete="off" placeholder="e.g. Anna & Marco Rossi"' + ro + '></label>' +
+        '<div class="grid3">' +
+          '<label class="f">On the passes<input id="f-full" class="mono" data-k="full" autocomplete="off"' + ro + '></label>' +
+          '<label class="f">In the letter<input id="f-first" data-k="first" autocomplete="off"' + ro + '></label>' +
+          '<label class="f">On the stub<input id="f-short" class="mono" data-k="short" autocomplete="off"' + ro + '></label>' +
+        '</div>' +
+        '<p class="hint">These three fill in from the name. Type over one to fix it; clear it to go back to automatic.</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span class="hint">Invitation language</span>' +
+          '<div class="seg" id="f-lang" role="group" aria-label="Invitation language"><button type="button" data-v="en"' + ro + '>English</button><button type="button" data-v="it"' + ro + '>Italiano</button></div></div>' +
+      '</section>' +
+
+      '<section class="blk">' +
+        '<h3>Personal note in the letter</h3>' +
+        '<textarea id="f-note" data-k="note" placeholder="Leave empty and the letter has no note."' + ro + '></textarea>' +
+        '<p class="hint">The guest reads this. It travels inside their link.</p>' +
+      '</section>' +
+
+      '<section class="blk">' +
+        '<h3>Send it</h3>' +
+        '<div id="d-sent"></div>' +
+        '<div class="linkbox" id="d-link"></div>' +
+        '<div class="actions">' +
+          '<button class="btn primary" type="button" id="b-copymsg">Copy message</button>' +
+          '<button class="btn" type="button" id="b-copylink">Copy link only</button>' +
+          '<a class="btn" id="b-wa" target="_blank" rel="noopener">WhatsApp</a>' +
+          '<a class="btn" id="b-open" target="_blank" rel="noopener">Open invitation</a>' +
+        '</div>' +
+        '<details><summary class="hint" style="cursor:pointer">Message that goes with it</summary><div class="msgbox" id="d-msg" style="margin-top:8px"></div></details>' +
+      '</section>' +
+
+      '<section class="blk">' +
+        '<h3>RSVP</h3>' +
+        '<div class="legs" id="d-legs">' + LEGS.map(function (l) {
+          return '<div class="leg"><span class="route">' + l.route + '<small>' + l.what + '</small></span>' +
+            '<div class="seg rsvp" data-leg="' + l.id + '" role="group" aria-label="RSVP ' + l.route + '">' +
+              '<button type="button" data-v="yes"' + ro + '>Yes</button><button type="button" data-v="maybe"' + ro + '>Maybe</button><button type="button" data-v="no"' + ro + '>No</button>' +
+            '</div></div>';
+        }).join('') + '</div>' +
+        '<p class="hint">Tap again to clear.</p>' +
+      '</section>' +
+
+      '<section class="blk">' +
+        '<h3>Contact &amp; group</h3>' +
+        '<div class="grid2">' +
+          '<label class="f">Phone (for WhatsApp)<input id="f-phone" data-k="phone" inputmode="tel" autocomplete="off" placeholder="+31 6 …"' + ro + '></label>' +
+          '<label class="f">Email<input id="f-email" data-k="email" type="email" autocomplete="off"' + ro + '></label>' +
+        '</div>' +
+        '<label class="f">Group<input id="f-group" data-k="group" list="groups" autocomplete="off" placeholder="e.g. Briotto family, Amsterdam friends"' + ro + '></label>' +
+        '<datalist id="groups"></datalist>' +
+      '</section>' +
+
+      '<section class="blk">' +
+        '<h3>Our notes</h3>' +
+        '<textarea id="f-internal" data-k="internal" placeholder="Only the two of you see this: plus-ones, dietary needs, who should call them first…"' + ro + '></textarea>' +
+      '</section>' +
+
+      '<section class="blk" id="d-danger"></section>' +
+      '<p class="meta" id="d-meta"></p>';
+
+    var body = $('d-body');
+    body.addEventListener('input', function (e) {
+      var k = e.target.getAttribute('data-k');
+      if (!k || !openId) return;
+      var f = {}; f[k] = e.target.value;
+      patch(openId, f);
+      if (k === 'name') updateDrawer(false);
+    });
+    body.addEventListener('change', function (e) {   /* commit on blur */
+      if (e.target.getAttribute('data-k') && openId) flush(openId);
+    });
+    body.addEventListener('click', function (e) {
+      if (!openId) return;
+      var g = guests[openId];
+      var langBtn = e.target.closest('#f-lang button');
+      if (langBtn) return patch(openId, { lang: langBtn.getAttribute('data-v') }, true);
+      var rs = e.target.closest('.seg.rsvp button');
+      if (rs) {
+        var leg = rs.parentNode.getAttribute('data-leg'), v = rs.getAttribute('data-v');
+        var cur = (g.rsvp || {})[leg] || '';
+        var r = {}; r[leg] = cur === v ? '' : v;
+        return patch(openId, { rsvp: r }, true);
+      }
+      var id = e.target.id || (e.target.closest('[id]') || {}).id;
+      if (id === 'b-copymsg') return copy(messageFor(g), 'Message copied. Paste it into WhatsApp, email or a text.');
+      if (id === 'b-copylink') return copy(linkFor(g), 'Link copied.');
+      if (id === 'b-wa') { if (g.status !== 'sent') offerMark('WhatsApp'); return; }
+      if (id === 'b-marksent') return markSent(openId, $('f-via') ? $('f-via').value : '');
+      if (id === 'b-unsend') return patch(openId, { status: 'todo', sentAt: 0, sentBy: '', sentVia: '', sentLink: '' }, true);
+      if (id === 'b-resent') { markSent(openId, g.sentVia); return; }
+      if (id === 'b-delete') { confirmingDelete = true; return updateDrawer(true); }
+      if (id === 'b-nodelete') { confirmingDelete = false; return updateDrawer(true); }
+      if (id === 'b-yesdelete') return deleteGuest(openId);
+    });
+  }
+
+  function offerMark(via) {
+    var sel = $('f-via');
+    if (sel) sel.value = via;
+    toast('Sent it? Press Mark as sent.');
+  }
+
+  function setVal(el, v) {
+    if (!el || document.activeElement === el) return;   /* never yank text from under someone typing */
+    if (el.value !== v) el.value = v;
+  }
+
+  function updateDrawer(full) {
+    if (!openId) return;
+    var g = guests[openId];
+    if (!g) { closeDrawer(); toast('That passenger was removed.'); return; }
+    var f = forms(g), auto = I.nameForms(g.name);
+    $('d-title').textContent = g.name || 'New passenger';
+    setVal($('f-name'), g.name || '');
+    ['full', 'first', 'short'].forEach(function (k) {
+      var el = $('f-' + k);
+      el.placeholder = auto[k] || '';
+      setVal(el, g[k] || '');
+    });
+    ['note', 'phone', 'email', 'group', 'internal'].forEach(function (k) { setVal($('f-' + k), g[k] || ''); });
+    Array.prototype.forEach.call($('f-lang').children, function (b) {
+      b.setAttribute('aria-pressed', String((g.lang === 'it' ? 'it' : 'en') === b.getAttribute('data-v'))); });
+    Array.prototype.forEach.call(document.querySelectorAll('.seg.rsvp'), function (s) {
+      var v = (g.rsvp || {})[s.getAttribute('data-leg')] || '';
+      Array.prototype.forEach.call(s.children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); });
+    });
+
+    var link = linkFor(g);
+    $('d-link').textContent = link;
+    $('d-msg').textContent = messageFor(g);
+    $('b-open').href = link;
+    var digits = (g.phone || '').replace(/[^\d]/g, '');
+    $('b-wa').href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent(messageFor(g));
+    $('b-wa').textContent = digits ? 'WhatsApp' : 'WhatsApp (pick contact)';
+
+    var gl = {};
+    Object.keys(guests).forEach(function (id) { if (guests[id].group) gl[guests[id].group] = 1; });
+    $('groups').innerHTML = Object.keys(gl).sort().map(function (x) { return '<option value="' + esc(x) + '">'; }).join('');
+
+    /* the sent card changes shape with status; rebuild it unless someone is using its select */
+    var sentEl = $('d-sent');
+    if (full || !sentEl.contains(document.activeElement)) {
+      var ro = canWrite === false;
+      if (g.status === 'sent') {
+        sentEl.innerHTML = '<div class="sentcard"><strong>Sent ' + esc(when(g.sentAt)) + '</strong>' +
+          '<span>' + (g.sentVia ? 'By ' + esc(g.sentVia) + ', ' : '') + 'marked by ' + esc(who(g.sentBy)) + '.' + (hasReply(g) ? ' They have replied.' : '') + '</span>' +
+          (isStale(g) ? '<div class="warnline">You changed the name, note or language after sending, so their link shows the old version. Send the new link and press Sent again.</div>' : '') +
+          (ro ? '' : '<div class="actions">' + (isStale(g) ? '<button class="btn small seal" type="button" id="b-resent">Sent the new link</button>' : '') +
+            '<button class="btn small ghost" type="button" id="b-unsend">Not sent after all</button></div>') +
+          '</div>';
+      } else {
+        sentEl.innerHTML = '<div class="sentcard todo"><strong>Not sent yet</strong>' +
+          (ro ? '' : '<div class="actions" style="align-items:center"><label class="f" style="flex-direction:row;display:flex;align-items:center;gap:8px">Sent by' +
+            '<select id="f-via"><option value="">—</option><option>WhatsApp</option><option>Email</option><option>Text message</option><option>In person</option><option>Other</option></select></label>' +
+            '<button class="btn seal" type="button" id="b-marksent">Mark as sent</button></div>') +
+          '</div>';
+      }
+    }
+
+    var dz = $('d-danger');
+    if (canWrite === false) dz.innerHTML = '';
+    else if (confirmingDelete) dz.innerHTML = '<div class="confirm"><span>Remove ' + esc(g.name || 'this passenger') + ' from the manifest for everyone?</span>' +
+      '<button class="btn small danger" type="button" id="b-yesdelete">Remove</button><button class="btn small ghost" type="button" id="b-nodelete">Keep</button></div>';
+    else if (full || !dz.firstChild) dz.innerHTML = '<div><button class="btn small danger" type="button" id="b-delete">Remove passenger</button></div>';
+
+    $('d-meta').textContent = (g.createdAt ? 'Added ' + when(g.createdAt) + (g.createdBy ? ' by ' + who(g.createdBy) : '') : '') +
+      (g.updatedAt && g.updatedAt !== g.createdAt ? ' · last changed ' + when(g.updatedAt) + (g.updatedBy ? ' by ' + who(g.updatedBy) : '') : '');
+  }
+
+  function deleteGuest(id) {
+    var q = queues[id];
+    if (q) { clearTimeout(q.t); q.p = {}; }
+    var g = guests[id];
+    delete guests[id];
+    openId = null; $('layer').innerHTML = '';
+    scheduleRender();
+    (q ? q.chain : Promise.resolve()).then(function () { return db.doc('guests/' + id).delete(); })
+      .then(function () { toast((g && g.name ? g.name : 'Passenger') + ' removed.'); })
+      .catch(function (e) { guests[id] = g; scheduleRender(); writeFailed(e); });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Paste a list                                                        */
+  /* ------------------------------------------------------------------ */
+
+  function parseLines(text) {
+    return text.split(/\r?\n/).map(function (line) {
+      line = line.trim(); if (!line) return null;
+      var parts = line.split(/\t|;|\s\|\s/).map(function (s) { return s.trim(); }).filter(Boolean);
+      var out = { name: parts.shift() || '' };
+      parts.forEach(function (p) {
+        if (/@/.test(p) && !out.email) out.email = p;
+        else if (/^\+?[\d\s().-]{6,}$/.test(p) && !out.phone) out.phone = p;
+        else if (!out.group) out.group = p;
+      });
+      return out.name ? out : null;
+    }).filter(Boolean);
+  }
+
+  function openPaste() {
+    if (!db) return toast('Still connecting to the shared list.');
+    var layer = document.createElement('div');
+    layer.innerHTML = '<div class="scrim top" data-x></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="p-h">' +
+      '<h2 id="p-h">Paste a list</h2>' +
+      '<p class="hint" style="font-size:14px">One passenger per line. You can add a phone number, email and group on the same line, separated by tabs (straight from a spreadsheet) or semicolons.</p>' +
+      '<textarea id="p-text" class="ta" style="min-height:180px;font-family:var(--mono);font-size:13px" placeholder="Anna &amp; Marco Rossi; +39 333 123 4567; Rossi family&#10;Lotte de Vries; lotte@example.nl; Amsterdam friends&#10;Mama"></textarea>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><span class="hint">Language for all of them</span>' +
+        '<div class="seg" id="p-lang" role="group"><button type="button" data-v="en" aria-pressed="true">English</button><button type="button" data-v="it" aria-pressed="false">Italiano</button></div></div>' +
+      '<p class="hint" id="p-sum">Nothing pasted yet.</p>' +
+      '<div class="actions"><button class="btn primary" type="button" id="p-go" disabled>Add to manifest</button><button class="btn ghost" type="button" data-x>Cancel</button></div>' +
+      '</div>';
+    document.body.appendChild(layer);
+    var lang = 'en', ta = layer.querySelector('#p-text'), go = layer.querySelector('#p-go'), sum = layer.querySelector('#p-sum');
+    function existing() {
+      var s = {}; Object.keys(guests).forEach(function (id) { s[(guests[id].name || '').trim().toLowerCase()] = 1; }); return s;
+    }
+    function preview() {
+      var list = parseLines(ta.value), ex = existing();
+      var fresh = list.filter(function (x) { return !ex[x.name.toLowerCase()]; });
+      var dup = list.length - fresh.length;
+      sum.textContent = list.length ? fresh.length + ' new passenger' + (fresh.length === 1 ? '' : 's') +
+        (dup ? ', ' + dup + ' already on the manifest (skipped)' : '') + '.' : 'Nothing pasted yet.';
+      go.disabled = !fresh.length;
+      return fresh;
+    }
+    ta.addEventListener('input', preview);
+    ta.focus();
+    layer.addEventListener('click', function (e) {
+      if (e.target.closest('[data-x]')) { layer.remove(); return; }
+      var lb = e.target.closest('#p-lang button');
+      if (lb) { lang = lb.getAttribute('data-v'); Array.prototype.forEach.call(lb.parentNode.children, function (b) { b.setAttribute('aria-pressed', String(b === lb)); }); }
+      if (e.target === go) {
+        var fresh = preview(), base = Date.now();
+        fresh.forEach(function (x, i) { createGuest(Object.assign({ lang: lang, createdAt: base + i, updatedAt: base + i }, x)); });
+        layer.remove();
+        toast(fresh.length + ' passenger' + (fresh.length === 1 ? '' : 's') + ' added.');
+      }
+    });
+    layer.addEventListener('keydown', function (e) { if (e.key === 'Escape') layer.remove(); });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Message templates (shared)                                          */
+  /* ------------------------------------------------------------------ */
+
+  function openTemplates() {
+    var ro = canWrite === false || !db ? ' disabled' : '';
+    var layer = document.createElement('div');
+    layer.innerHTML = '<div class="scrim top" data-x></div><div class="modal" role="dialog" aria-modal="true" aria-labelledby="t-h">' +
+      '<h2 id="t-h">The message that goes with the link</h2>' +
+      '<p class="hint" style="font-size:14px"><b>Copy message</b> and <b>WhatsApp</b> use this text. <code>{first}</code> becomes the name from the letter, <code>{name}</code> the full name, <code>{link}</code> their invitation link. Shared between the two of you.</p>' +
+      '<label class="f">English<textarea id="t-en" class="ta" style="min-height:150px"' + ro + '></textarea></label>' +
+      '<label class="f">Italiano<textarea id="t-it" class="ta" style="min-height:150px"' + ro + '></textarea></label>' +
+      '<div class="actions">' + (ro ? '' : '<button class="btn primary" type="button" id="t-save">Save</button><button class="btn ghost" type="button" id="t-reset">Restore the original text</button>') +
+      '<button class="btn ghost" type="button" data-x>Close</button></div></div>';
+    document.body.appendChild(layer);
+    layer.querySelector('#t-en').value = settings.tpl.en;
+    layer.querySelector('#t-it').value = settings.tpl.it;
+    layer.addEventListener('click', function (e) {
+      if (e.target.closest('[data-x]')) { layer.remove(); return; }
+      if (e.target.id === 't-reset') { layer.querySelector('#t-en').value = DEFAULT_TPL.en; layer.querySelector('#t-it').value = DEFAULT_TPL.it; }
+      if (e.target.id === 't-save') {
+        var tpl = { en: layer.querySelector('#t-en').value, it: layer.querySelector('#t-it').value };
+        if (!/\{link\}/.test(tpl.en) || !/\{link\}/.test(tpl.it)) { toast('Keep {link} in both messages, or guests get no invitation.'); return; }
+        settings.tpl = tpl;
+        db.doc('settings/main').set({ tpl: tpl, updatedAt: Date.now(), updatedBy: myId || '' })
+          .then(function () { toast('Message saved.'); }, writeFailed);
+        layer.remove(); scheduleRender();
+      }
+    });
+    layer.addEventListener('keydown', function (e) { if (e.key === 'Escape') layer.remove(); });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Export                                                              */
+  /* ------------------------------------------------------------------ */
+
+  function csv() {
+    var cols = ['Seat', 'Name', 'Group', 'Language', 'Status', 'Sent on', 'Sent via', 'RSVP Amsterdam', 'RSVP Windhoek', 'RSVP Italy', 'Phone', 'Email', 'Note in letter', 'Our notes', 'Link'];
+    var q = function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var lines = [cols.join(',')];
+    sorted().forEach(function (x, i) {
+      var g = x.g, r = g.rsvp || {};
+      lines.push([i + 1, g.name, g.group, g.lang === 'it' ? 'Italiano' : 'English', stateOf(g),
+        g.sentAt ? new Date(g.sentAt).toISOString().slice(0, 10) : '', g.sentVia, r.ams, r.wdh, r.ita,
+        g.phone, g.email, g.note, g.internal, linkFor(g)].map(q).join(','));
+    });
+    return lines.join('\n');
+  }
+  function exportCsv() {
+    if (!Object.keys(guests).length) return toast('Nothing to export yet.');
+    var text = csv();
+    claude.use('downloads').then(function (dl) {
+      if (!dl) return copy(text, 'Saving files is off here, so the CSV was copied instead. Paste it into a spreadsheet.');
+      return dl.save({ filename: 'manifest-1D0-' + new Date().toISOString().slice(0, 10) + '.csv', data: text })
+        .catch(function () { copy(text, 'The CSV was copied instead. Paste it into a spreadsheet.'); });
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Small things                                                        */
+  /* ------------------------------------------------------------------ */
+
+  function copy(text, ok) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var done = false; try { done = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      toast(done ? ok : 'Copy is blocked here. Select the link in the box and copy it by hand.');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(ok); }, fallback);
+    else fallback();
+  }
+
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, 3800);
+  }
+
+  document.addEventListener('click', function (e) { if (e.target.closest('#layer [data-close]')) closeDrawer(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && openId && !document.querySelector('.modal')) closeDrawer(); });
+
+  function setWritable(v) {
+    canWrite = v;
+    $('ronote').hidden = v !== false;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-write]'), function (b) { b.hidden = v === false; });
+    scheduleRender();
+    if (openId) openDrawer(openId);
+  }
+
+  function resolveNames() {
+    if (!user) return;
+    var ids = {};
+    Object.keys(guests).forEach(function (id) { var g = guests[id]; [g.sentBy, g.createdBy, g.updatedBy].forEach(function (u) { if (u && u !== myId) ids[u] = 1; }); });
+    var list = Object.keys(ids).filter(function (u) { return !(u in names); });
+    if (!list.length) return;
+    user.profiles(list).then(function (ps) {
+      list.forEach(function (u) { names[u] = (ps && ps[u] && ps[u].name) || 'someone'; });
+      scheduleRender();
+    }, function () {});
+  }
+
+  try { var saved = localStorage.getItem('manifest-filter'); if (saved && $('c-' + saved)) {
+    filter = saved;
+    Array.prototype.forEach.call($('board').querySelectorAll('button'), function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-f') === saved)); });
+  } } catch (e) {}
+  render();
+
+  /* ------------------------------------------------------------------ */
+  /* Connect                                                             */
+  /* ------------------------------------------------------------------ */
+
+  if (!window.claude || !claude.use) {
+    $('whotext').textContent = 'Open this page on claude.ai to see the shared list.';
+    return;
+  }
+  Promise.all([claude.use('db'), claude.use('user')]).then(function (r) {
+    db = r[0]; user = r[1];
+    if (!db) {
+      $('whotext').textContent = 'Sign in to claude.ai to see the shared list.';
+      setWritable(false);
+      return;
+    }
+    var idP = user ? user.id() : Promise.resolve(null);
+    var canP = user ? user.can('data.write') : Promise.resolve(null);
+    Promise.all([idP, canP, user ? user.name() : Promise.resolve('')]).then(function (v) {
+      myId = v[0];
+      canWrite = v[1] === false ? false : (v[1] === true ? true : null);
+      setWritable(canWrite);
+      $('live').classList.add('on');
+      $('whotext').textContent = 'Live · ' + (v[2] ? 'signed in as ' + v[2] : 'shared list');
+    });
+
+    db.collection('guests').onSnapshot(function (snap) {
+      var next = {};
+      snap.docs.forEach(function (d) {
+        var data = JSON.parse(JSON.stringify(d.data() || {}));
+        var q = queues[d.id];
+        if (q && Object.keys(q.p).length) {     /* keep what this person is still typing */
+          Object.keys(q.p).forEach(function (k) { data[k] = k === 'rsvp' ? Object.assign({}, data.rsvp || {}, q.p.rsvp) : q.p[k]; });
+        }
+        next[d.id] = data;
+      });
+      /* a guest created here but not yet confirmed stays visible */
+      Object.keys(guests).forEach(function (id) { if (!next[id] && queues[id] && guests[id].createdAt > Date.now() - 15000) next[id] = guests[id]; });
+      guests = next;
+      resolveNames();
+      scheduleRender();
+    }, function (e) {
+      $('live').classList.remove('on');
+      $('whotext').textContent = 'Lost the connection to the shared list. Reload the page.';
+    });
+
+    db.doc('settings/main').onSnapshot(function (d) {
+      var data = d.exists ? d.data() : null;
+      if (data && data.tpl) settings.tpl = { en: data.tpl.en || DEFAULT_TPL.en, it: data.tpl.it || DEFAULT_TPL.it };
+      scheduleRender();
+    }, function () {});
+  });
+})();
+</script>
