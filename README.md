@@ -208,7 +208,7 @@ just below, in both languages.
 | `assets/template.js` | the invitation document itself: markup, styles, the envelope |
 | `assets/fonts.js` | Cormorant Garamond + Courier Prime, base64'd (generated) |
 | `assets/stamp/` | drop artwork here to replace the stamp's drawn flowers |
-| `assets/stamp-art.js` | that picture, base64'd (generated) |
+| `assets/stamp-art.js` | that picture, base64'd, plus its watermark copy for the letter (generated) |
 | `assets/fonts/` | the source `.woff2` files and their SIL Open Font Licences |
 | `example-invitation.html` | a minted sample, for looking at and test-printing |
 | `tools/build-fonts.py` | regenerates `assets/fonts.js` from `assets/fonts/` |
@@ -237,6 +237,12 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   ground and the stamp stock are the same colour with no seam. Delete
   `assets/stamp/couple.png` and rerun the second to fall back to the drawn posy, whose colours
   are the `BLOOM` block at the top of `assets/invitation.js`.
+- **The same drawing is watermarked across both sheets of the letter**, faintly, under the
+  writing. `tools/build-stamp-art.py` makes that copy too: it lifts the drawing's cream ground to
+  pure white and saves it as a small JPEG, and the letter multiplies it onto the paper, so only
+  the lines land and the paper grain shows through them. How strong it is is the `opacity` on
+  `.sheet::after` in [`assets/template.js`](assets/template.js). With no picture in
+  `assets/stamp/`, the letter is plain.
 - **The envelope is the same design at every size.** Everything inside it — type, stamp,
   cancellation, wax seal — is sized off one `--w` custom property set to the envelope's own
   width, so a phone gets the same composition as a desktop, just smaller, rather than a

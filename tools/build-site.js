@@ -57,6 +57,7 @@ const bootstrap = `
       checkinKey: location.hash,
       fontCss: window.INVITATION_FONT_CSS,
       stampArt: window.STAMP_ART,
+      letterArt: window.LETTER_ART,
       textures: window.TEXTURES,
       flowers: window.FLOWERS
     });

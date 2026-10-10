@@ -284,7 +284,7 @@
     '</div>';
   }
 
-  function styles(fontCss, tex, flo) {
+  function styles(fontCss, tex, flo, letterArt) {
     return fontCss + '\n' + [
 '*,*::before,*::after{box-sizing:border-box}',
 'html{-webkit-text-size-adjust:100%}',
@@ -310,6 +310,7 @@
 '  --ground-tex:url(' + (tex.ground || '') + ');',
 '  --bloom-a:url(' + (flo.cornerA || '') + ');',
 '  --bloom-b:url(' + (flo.cornerB || '') + ');',
+'  --letter-art:' + (letterArt ? 'url(' + letterArt + ')' : 'none') + ';',
 /* Boarding passes are not printed on writing paper. Ticket stock is thinner and
    whiter, drawn through a press lengthwise, so it gets its own tile and colour. */
 '  --ticket:#f9f6ec;--ticket-2:#f2ecdd;',
@@ -641,6 +642,14 @@
    personal note can still push it taller, which is what a second sheet of the
    real thing would do too. */
 '.sheet::before{content:"";display:block;float:left;width:0;padding-top:141.4%}',
+/* The two of us, faintly, across the middle of every sheet, the way a watermark
+   sits in good stationery. The drawing's ground was levelled to white when it
+   was built, and multiplying it onto the sheet lets white vanish, so only the
+   lines land and the paper's own grain shows through them. It sits under the
+   writing and over the paper. */
+'.sheet::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;',
+'  background:var(--letter-art) 50% 50%/min(88%,520px) auto no-repeat;',
+'  mix-blend-mode:multiply;opacity:.13}',
 '.sheet__no{position:absolute;left:0;right:0;bottom:clamp(20px,2.6vw,28px);text-align:center;',
 '  font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;',
 '  color:var(--ink-2);opacity:.55}',
@@ -1231,7 +1240,7 @@
 '<meta name="description" content="' + esc(t.brand + ' — ' + t.strapline) + '">\n' +
 '<meta name="robots" content="noindex,nofollow,noarchive,noimageindex">\n' +
 '<meta name="referrer" content="no-referrer">\n' +
-'<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}) + '\n</style>\n' +
+'<style>\n' + styles(fontCss, opts.textures || {}, opts.flowers || {}, opts.letterArt) + '\n</style>\n' +
 '<noscript><style>.env-wrap,.guide,.nav,.panel-end{display:none}.panel[hidden]{display:block!important}</style></noscript>\n' +
 '</head>\n' +
 '<body data-stage="sealed" data-envelope="' + envelope + '">\n' +

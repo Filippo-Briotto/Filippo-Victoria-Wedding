@@ -28,6 +28,7 @@ const html = window.INVITATION.buildDocument({
   checkinKey: 'example-invitation',
   fontCss: window.INVITATION_FONT_CSS,
   stampArt: window.STAMP_ART,
+  letterArt: window.LETTER_ART,
   textures: window.TEXTURES,
   flowers: window.FLOWERS
 });
