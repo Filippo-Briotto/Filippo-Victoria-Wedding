@@ -245,8 +245,10 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   `.sheet--watermark::after` in [`assets/template.js`](assets/template.js). With no picture in
   `assets/stamp/`, the sheet is plain.
 - **The second sheet ends with a watercolour of the two of you**, under the sign-off, shown as
-  it was painted: not blended into the paper. It is `assets/letter/picture.webp` (a `.jpg` or
-  `.png` of the same name works too); `tools/build-stamp-art.py` only scales it down to a JPEG.
+  it was painted: not blended into the paper, so its colours stay its own. It is
+  `assets/letter/picture.webp` (a `.jpg` or `.png` of the same name works too).
+  `tools/build-stamp-art.py` takes only the cream it was painted on away, making it transparent so
+  the letter's paper shows around the paint, and saves it as a WebP with transparency.
   It takes whatever room the writing leaves, so a long personal note makes it smaller instead of
   making the sheet taller (in browsers too old for that, it keeps a fixed height and a long note
   makes the sheet taller). Delete the file and rerun the script to go without.

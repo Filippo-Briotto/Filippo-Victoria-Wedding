@@ -657,7 +657,9 @@
 '  background:var(--letter-art) 50% 50%/min(88%,520px) auto no-repeat;',
 '  mix-blend-mode:multiply;opacity:.13}',
 /* And at the foot of the second, under the sign-off, a watercolour of the two
-   of us, shown as it was painted: not blended into the paper. Where the browser
+   of us, shown as it was painted: not blended into the paper. Only the cream it
+   was painted on was taken out when it was built, so the letter's own paper
+   shows around and between the paint. Where the browser
    can measure the sheet (container units), the second sheet becomes a column
    and the picture takes whatever room the writing leaves above the page number
    -- so a long personal note shrinks the picture instead of pushing the sheet
