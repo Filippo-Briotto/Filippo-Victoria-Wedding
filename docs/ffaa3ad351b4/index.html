@@ -204,6 +204,14 @@
   .seg.rsvp button[data-v="maybe"][aria-pressed="true"]{background:var(--warn); color:#fff}
   .linkbox{font:400 12px/1.45 var(--mono); background:var(--bg); border:1px dashed var(--line-2); border-radius:4px; padding:8px 10px;
     overflow-wrap:anywhere; user-select:all; max-height:5.8em; overflow:auto}
+  /* check-ins the list could not put a name to */
+  .strays{display:grid; gap:10px; margin-bottom:16px; padding:12px 14px; border:1px solid var(--warn); border-radius:8px; background:var(--warn-bg)}
+  .strays h2{margin:0; font:600 15px/1.35 var(--body)}
+  .stray{display:grid; gap:6px; padding-top:10px; border-top:1px solid var(--line-2)}
+  .stray__who{font-weight:600}
+  .stray .acts{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .stray select{min-height:38px; max-width:100%; padding:0 8px; border:1px solid var(--line-2); border-radius:6px; background:var(--panel)}
+  .theirmsg{margin:0; padding:8px 12px; border-left:3px solid var(--accent); background:var(--bg); font-style:italic; white-space:pre-wrap; overflow-wrap:anywhere}
   .msgbox{white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; background:var(--bg); border:1px solid var(--line); border-radius:4px; padding:10px 12px; user-select:text}
   .actions{display:flex; flex-wrap:wrap; gap:8px}
   .sentcard{display:grid; gap:8px; padding:12px 14px; border-radius:4px; background:var(--sent-bg); color:var(--fg)}
@@ -277,6 +285,8 @@
       <button class="btn small ghost" type="button" id="lock">Sign out</button>
     </div>
   </header>
+
+  <section class="strays" id="strays" aria-live="polite" hidden></section>
 
   <section class="coming" id="coming" aria-label="Who is coming"></section>
 
@@ -357,6 +367,11 @@ window.INVITATION = (function () {
      fragment (after the #), which browsers never send to the server -- GitHub
      sees a request for the page and nothing else. */
   var SITE = 'https://filippo-victoria-wedding.filippobriotto.workers.dev/56e45cd6399d/';
+
+  /* Where a guest's check-in goes: the small worker that sits in front of the
+     site on Cloudflare (worker/index.js). Always the Cloudflare address, so the
+     GitHub Pages copy and a downloaded file reply to the same place. */
+  var CHECKIN_API = SITE.replace(/^(https?:\/\/[^\/]+).*$/, '$1') + '/api/';
 
   var FLIGHT = '1D0';
   var CLASS = 'First';
@@ -448,6 +463,26 @@ window.INVITATION = (function () {
       tagline: 'Join us as we say “I do”',
       detailsToFollow: 'Full details to follow',
 
+      checkinAsk: 'Will you be on this flight?',
+      checkinYes: 'Check in',
+      checkinNo: 'Can’t make it',
+      stampYes: 'Checked in',
+      stampNo: 'Not travelling',
+      deskTitle: 'Check-in desk',
+      deskIntro: 'Answer on each boarding pass above, then confirm here. You can come back and change your answers at any time.',
+      lParty: 'Passengers on this booking',
+      partyFewer: 'One fewer',
+      partyMore: 'One more',
+      lMessage: 'A message for Filippo & Victoria (optional)',
+      messageKept: 'Your message reached us. Write here only to replace it.',
+      checkinSend: 'Confirm check-in',
+      checkinUpdate: 'Update check-in',
+      checkinSending: 'Sending…',
+      checkinDone: 'Checked in on {date}. Thank you — we can’t wait to see you.',
+      checkinPick: 'First choose “Check in” or “Can’t make it” on at least one boarding pass.',
+      checkinFailed: 'The check-in desk could not be reached. Check your connection and try again.',
+      letterCheckin: 'Check in on your boarding passes',
+
       legs: {
         ita: {
           title: 'The party',
@@ -471,7 +506,8 @@ window.INVITATION = (function () {
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
           date: '2027 · TBA',
-          dateLong: '2027, date to be announced'
+          dateLong: '2027, date to be announced',
+          checkinAsk: 'Will you be on this flight? We will confirm the date.'
         }
       }
     },
@@ -525,6 +561,26 @@ window.INVITATION = (function () {
       tagline: 'Unisciti a noi quando diremo “sì”',
       detailsToFollow: 'Dettagli a seguire',
 
+      checkinAsk: 'Sarai su questo volo?',
+      checkinYes: 'Check-in',
+      checkinNo: 'Non ci sarò',
+      stampYes: 'Check-in fatto',
+      stampNo: 'Non in viaggio',
+      deskTitle: 'Banco check-in',
+      deskIntro: 'Rispondi su ogni carta d’imbarco qui sopra, poi conferma qui. Puoi tornare e cambiare le risposte quando vuoi.',
+      lParty: 'Passeggeri su questa prenotazione',
+      partyFewer: 'Uno in meno',
+      partyMore: 'Uno in più',
+      lMessage: 'Un messaggio per Filippo e Victoria (facoltativo)',
+      messageKept: 'Il tuo messaggio ci è arrivato. Scrivi qui solo per sostituirlo.',
+      checkinSend: 'Conferma il check-in',
+      checkinUpdate: 'Aggiorna il check-in',
+      checkinSending: 'Invio…',
+      checkinDone: 'Check-in fatto il {date}. Grazie — non vediamo l’ora di vederti.',
+      checkinPick: 'Prima scegli “Check-in” o “Non ci sarò” su almeno una carta d’imbarco.',
+      checkinFailed: 'Non riusciamo a raggiungere il banco check-in. Controlla la connessione e riprova.',
+      letterCheckin: 'Fai il check-in sulle carte d’imbarco',
+
       legs: {
         ita: {
           title: 'La festa',
@@ -548,7 +604,8 @@ window.INVITATION = (function () {
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
           date: '2027 · TBA',
-          dateLong: '2027, data da annunciare'
+          dateLong: '2027, data da annunciare',
+          checkinAsk: 'Sarai su questo volo? Ti confermeremo la data.'
         }
       }
     }
@@ -582,6 +639,23 @@ window.INVITATION = (function () {
 
   function guestLink(data) {
     return SITE + '#' + encodePayload(data);
+  }
+
+  /* A check-in is filed under a fingerprint of the guest's own link: the part
+     after the #, hashed. The invitation works it out from the link it was
+     opened with, and the guest list from the link it sent, so the two meet
+     without the link itself -- or the note inside it -- ever reaching the
+     server, and links sent before check-in existed still match.
+     The invitation document repeats this in its own script (template.js,
+     checkinScript); the two must agree. Resolves '' without WebCrypto. */
+  function checkinRef(fragment) {
+    var key = String(fragment || '').replace(/^.*#/, '');
+    if (!key || !window.crypto || !crypto.subtle) return Promise.resolve('');
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode('bfa-checkin:' + key)).then(function (buf) {
+      var bytes = new Uint8Array(buf), bin = '', i;
+      for (i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 32);
+    });
   }
 
   function esc(value) {
@@ -866,6 +940,8 @@ window.INVITATION = (function () {
     COUPLE: COUPLE,
     FLIGHT: FLIGHT,
     SITE: SITE,
+    CHECKIN_API: CHECKIN_API,
+    checkinRef: checkinRef,
     encodePayload: encodePayload,
     decodePayload: decodePayload,
     guestLink: guestLink,
@@ -906,6 +982,7 @@ window.INVITATION = (function () {
   var myId = '';            // GitHub login of whoever is using this device
   var store = { guests: {}, settings: {} };   // everything saved, removed passengers included
   var guests = {};          // id -> data, live passengers only
+  var ids = new WeakMap();  // data -> id, for building a guest's link
   var settings = { tpl: { en: DEFAULT_TPL.en, it: DEFAULT_TPL.it } };
   var filter = 'all', query = '', sortBy = 'added';
   var openId = null;        // guest in the drawer
@@ -930,11 +1007,25 @@ window.INVITATION = (function () {
     };
   }
 
-  /* Same payload the minting desk puts in a link. */
+  /* Same payload the minting desk puts in a link, plus the guest's id as k:
+     a check-in is filed under a fingerprint of the link, and without
+     something unguessable in it anyone who knew a guest's name could work
+     theirs out and answer for them. A link that already went out without a
+     k keeps its shape, so it never turns into "changed since sending". */
+  function keyFor(g) {
+    if (g.status === 'sent' && g.sentLink) {
+      var sent = I.decodePayload(g.sentLink.split('#')[1]);
+      if (!sent || !sent.k) return '';
+    }
+    return ids.get(g) || '';
+  }
   function linkFor(g) {
     var f = forms(g);
-    return I.guestLink({ t: (g.name || '').trim(), n: (g.note || '').trim(), l: g.lang === 'it' ? 'it' : 'en',
-      f: f.full, r: f.first, s: f.short });
+    var data = { t: (g.name || '').trim(), n: (g.note || '').trim(), l: g.lang === 'it' ? 'it' : 'en',
+      f: f.full, r: f.first, s: f.short };
+    var k = keyFor(g);
+    if (k) data.k = k;
+    return I.guestLink(data);
   }
 
   function messageFor(g) {
@@ -972,6 +1063,7 @@ window.INVITATION = (function () {
   function who(id) {
     if (!id) return '';
     if (id === myId) return 'you';
+    if (id === 'check-in') return 'their check-in';
     return id;
   }
 
@@ -994,7 +1086,10 @@ window.INVITATION = (function () {
   function flush() { if (Sync.isDirty()) Sync.changed(true); }
   function refreshView() {
     var next = {};
-    Object.keys(store.guests).forEach(function (id) { if (!store.guests[id].deleted) next[id] = store.guests[id]; });
+    Object.keys(store.guests).forEach(function (id) {
+      ids.set(store.guests[id], id);
+      if (!store.guests[id].deleted) next[id] = store.guests[id];
+    });
     guests = next;
     var t = store.settings && store.settings.tpl;
     settings.tpl = { en: (t && t.en) || DEFAULT_TPL.en, it: (t && t.it) || DEFAULT_TPL.it };
@@ -1012,6 +1107,143 @@ window.INVITATION = (function () {
     scheduleRender();
     return id;
   }
+
+  /* ------------------------------------------------------------------ */
+  /* Check-ins: guests answering on their own boarding passes            */
+  /*                                                                     */
+  /* The worker in front of the site (worker/index.js) keeps them, filed */
+  /* under a fingerprint of each guest's link, and hands the whole list  */
+  /* to anyone holding a GitHub token that can push to the repository -- */
+  /* the one this page already uses. A guest's newest check-in becomes   */
+  /* their answer here; change it by hand and yours stands until they    */
+  /* check in again.                                                     */
+  /* ------------------------------------------------------------------ */
+
+  var checkins = [];        // as the desk has them
+  var refOf = {};           // link fragment -> its check-in fingerprint
+  var strays = [];          // check-ins that match nobody on the list
+  var straySig = '';
+
+  function fragmentOf(link) { return String(link || '').split('#')[1] || ''; }
+
+  function fingerprintAll() {
+    var want = {};
+    Object.keys(guests).forEach(function (id) {
+      [linkFor(guests[id]), guests[id].sentLink].forEach(function (l) {
+        var f = fragmentOf(l);
+        if (f && !(f in refOf)) want[f] = 1;
+      });
+    });
+    return Promise.all(Object.keys(want).map(function (f) {
+      return I.checkinRef(f).then(function (r) { refOf[f] = r; });
+    }));
+  }
+
+  function guestFor(c) {
+    var hit = null;
+    Object.keys(guests).some(function (id) {
+      var g = guests[id];
+      if ((g.checkinRefs || []).indexOf(c.ref) !== -1 || refOf[fragmentOf(linkFor(g))] === c.ref ||
+          (g.sentLink && refOf[fragmentOf(g.sentLink)] === c.ref)) { hit = id; return true; }
+      return false;
+    });
+    if (hit) return hit;
+    /* a link the list has no copy of any more: a name only one passenger has will do */
+    var name = String(c.name || '').trim().toLowerCase();
+    var same = name ? Object.keys(guests).filter(function (id) { return (guests[id].name || '').trim().toLowerCase() === name; }) : [];
+    return same.length === 1 ? same[0] : null;
+  }
+
+  function applyCheckins() {
+    var ignored = (store.settings && store.settings.ignoredCheckins) || [];
+    var touched = false;
+    strays = [];
+    checkins.slice().sort(function (a, b) { return a.at - b.at; }).forEach(function (c) {
+      var id = guestFor(c);
+      if (!id) { if (ignored.indexOf(c.ref) === -1) strays.push(c); return; }
+      var g = guests[id];
+      if ((g.checkinAt || 0) >= c.at || canWrite === false) return;
+      var rsvp = Object.assign({}, g.rsvp || {});
+      LEGS.forEach(function (l) { if (c.legs && c.legs[l.id]) rsvp[l.id] = c.legs[l.id]; });
+      g.rsvp = rsvp;
+      g.people = c.people;
+      g.checkinAt = c.at;
+      g.checkinMsg = c.message || '';
+      /* they have it, whether or not anyone pressed "Mark as sent" */
+      if (g.status !== 'sent') { g.status = 'sent'; g.sentAt = c.firstAt || c.at; g.sentBy = ''; g.sentVia = ''; }
+      g.updatedAt = Date.now();
+      g.updatedBy = 'check-in';
+      touched = true;
+    });
+    if (touched) Sync.changed(true);
+    scheduleRender();
+  }
+
+  function loadCheckins() {
+    clearTimeout(loadCheckins.timer);
+    loadCheckins.timer = setTimeout(loadCheckins, 30000);
+    var token = Sync.token();
+    if (!ready || document.hidden || !token) return;
+    fetch(I.CHECKIN_API + 'checkins', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.checkins) return;
+        checkins = j.checkins;
+        return fingerprintAll().then(applyCheckins);
+      })
+      .catch(function () {});   /* the desk is out of reach; the list itself is unaffected */
+  }
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && ready) loadCheckins(); });
+
+  function answerText(legs) {
+    return LEGS.filter(function (l) { return legs && legs[l.id]; }).map(function (l) {
+      return esc(l.city) + ': ' + (legs[l.id] === 'yes' ? 'yes' : legs[l.id] === 'no' ? 'no' : 'maybe');
+    }).join(', ');
+  }
+
+  function renderStrays() {
+    var el = $('strays');
+    var names = sorted().map(function (x) { return x.id + '=' + x.g.name; }).join('|');
+    var sig = strays.map(function (c) { return c.ref + c.at; }).join('|') + '#' + names + '#' + canWrite;
+    if (sig === straySig) return;   /* never reset a menu someone is choosing from */
+    straySig = sig;
+    if (!strays.length) { el.hidden = true; el.innerHTML = ''; return; }
+    var options = sorted().map(function (x) {
+      return '<option value="' + esc(x.id) + '">' + (esc(x.g.name) || 'No name yet') + '</option>';
+    }).join('');
+    el.hidden = false;
+    el.innerHTML = '<h2>' + (strays.length === 1 ? 'A check-in' : strays.length + ' check-ins') + ' we could not match to a guest</h2>' +
+      '<p class="hint" style="font-size:14px">The link they used is not one this list made, for example one from the minting desk, or one sent before a name was changed. Say who it is and the answers go onto that guest.</p>' +
+      strays.map(function (c) {
+        return '<div class="stray" data-ref="' + esc(c.ref) + '">' +
+          '<div class="stray__who">' + (esc(c.name) || 'No name on the invitation') + ' <span class="psub">· checked in ' + esc(when(c.at)) + '</span></div>' +
+          '<div class="psub">' + answerText(c.legs) + ' · ' + c.people + (c.people === 1 ? ' person' : ' people') + '</div>' +
+          (c.message ? '<p class="theirmsg">' + esc(c.message) + '</p>' : '') +
+          (canWrite === false ? '' : '<div class="acts"><select aria-label="Which guest is this?"><option value="">This is…</option>' + options + '</select>' +
+            '<button class="btn small" type="button" data-stray="assign">Put on this guest</button>' +
+            '<button class="btn small ghost" type="button" data-stray="ignore">Ignore</button></div>') +
+        '</div>';
+      }).join('');
+  }
+
+  $('strays').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-stray]');
+    if (!b || !ready || canWrite === false) return;
+    var box = b.closest('.stray'), ref = box.getAttribute('data-ref');
+    if (b.getAttribute('data-stray') === 'assign') {
+      var id = box.querySelector('select').value, g = guests[id];
+      if (!g) return toast('Choose the guest first.');
+      g.checkinRefs = (g.checkinRefs || []).concat(ref);
+      g.updatedAt = Date.now(); g.updatedBy = myId;
+      toast('Their answers are now on ' + firstName(g) + '.');
+    } else {
+      var ign = ((store.settings && store.settings.ignoredCheckins) || []).concat(ref);
+      store.settings = Object.assign({}, store.settings, { ignoredCheckins: ign, updatedAt: Date.now(), updatedBy: myId });
+      refreshView();
+    }
+    Sync.changed(true);
+    applyCheckins();
+  });
 
   /* ------------------------------------------------------------------ */
   /* The manifest                                                        */
@@ -1064,6 +1296,7 @@ window.INVITATION = (function () {
     Object.keys(counts).forEach(function (k) { $('c-' + k).textContent = counts[k]; });
     $('l-all').textContent = 'Invitations · ' + people + ' ' + (people === 1 ? 'person' : 'people');
     renderComing(all);
+    renderStrays();
 
     var q = query.toLowerCase();
     var rows = all.filter(function (x) {
@@ -1106,10 +1339,9 @@ window.INVITATION = (function () {
         bits.push('Sent ' + esc(when(g.sentAt)) + (g.sentVia ? ' by ' + esc(g.sentVia) : ''));
         if (isStale(g)) bits.push('<span class="stale">changed since sending</span>');
       }
-      var r = g.rsvp || {};
-      var answers = LEGS.filter(function (l) { return r[l.id]; }).map(function (l) {
-        return esc(l.city) + ': ' + (r[l.id] === 'yes' ? 'yes' : r[l.id] === 'no' ? 'no' : 'maybe'); });
-      if (answers.length) bits.push(answers.join(', '));
+      var answers = answerText(g.rsvp);
+      if (answers) bits.push(answers);
+      if (g.checkinMsg) bits.push('“' + esc(g.checkinMsg.length > 70 ? g.checkinMsg.slice(0, 68) + '…' : g.checkinMsg) + '”');
 
       var side = st === 'todo'
         ? (canWrite === false ? '<span class="pill todo always">To send</span>' : '<button class="btn small primary" type="button" data-act="send">Send</button>')
@@ -1250,6 +1482,7 @@ window.INVITATION = (function () {
 
       '<section class="blk">' +
         '<h3>Their answer</h3>' +
+        '<div id="d-checkin" style="display:grid;gap:8px"></div>' +
         LEGS.map(function (l) {
           return '<div class="rsvprow"><div class="t">' + esc(l.city) + ' · ' + esc(l.what) + ' <small>' + esc(l.when) + '</small></div>' +
             '<div class="seg rsvp" data-leg="' + l.id + '" role="group" aria-label="Answer for ' + esc(l.city) + '">' +
@@ -1409,6 +1642,12 @@ window.INVITATION = (function () {
     ['note', 'phone', 'email', 'group', 'internal'].forEach(function (k) { setVal($('f-' + k), g[k] || ''); });
     Array.prototype.forEach.call($('f-lang').children, function (b) {
       b.setAttribute('aria-pressed', String((g.lang === 'it' ? 'it' : 'en') === b.getAttribute('data-v'))); });
+    var ck = g.checkinAt
+      ? '<p class="hint" style="font-size:14px">' + esc(firstName(g)) + ' checked in on their invitation on ' + esc(when(g.checkinAt)) +
+          '. If you change an answer here, yours stands until they check in again.</p>' +
+          (g.checkinMsg ? '<p class="theirmsg">' + esc(g.checkinMsg) + '</p>' : '')
+      : '';
+    if ($('d-checkin').innerHTML !== ck) $('d-checkin').innerHTML = ck;
     Array.prototype.forEach.call(document.querySelectorAll('.seg.rsvp'), function (s) {
       var v = (g.rsvp || {})[s.getAttribute('data-leg')] || '';
       Array.prototype.forEach.call(s.children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === v)); });
@@ -1521,7 +1760,7 @@ window.INVITATION = (function () {
       if (e.target.id === 't-save') {
         var tpl = { en: layer.querySelector('#t-en').value, it: layer.querySelector('#t-it').value };
         if (!/\{link\}/.test(tpl.en) || !/\{link\}/.test(tpl.it)) { toast('Keep {link} in both messages, or guests get no invitation.'); return; }
-        store.settings = { tpl: tpl, updatedAt: Date.now(), updatedBy: myId };
+        store.settings = Object.assign({}, store.settings, { tpl: tpl, updatedAt: Date.now(), updatedBy: myId });
         refreshView();
         Sync.changed(true);
         toast('Message saved.');
@@ -1539,7 +1778,7 @@ window.INVITATION = (function () {
     var word = { yes: 'Coming', maybe: 'Maybe', no: 'Can’t come' };
     var cols = ['#', 'Name', 'People', 'Group', 'Language', 'Status', 'Sent on', 'Sent by']
       .concat(LEGS.map(function (l) { return l.city + ' (' + l.when + ')'; }))
-      .concat(['Phone', 'Email', 'Note in letter', 'Private notes', 'Invitation link']);
+      .concat(['Their message', 'Phone', 'Email', 'Note in letter', 'Private notes', 'Invitation link']);
     var q = function (v) { v = String(v == null ? '' : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
     var lines = [cols.join(',')];
     sorted().forEach(function (x, i) {
@@ -1548,7 +1787,7 @@ window.INVITATION = (function () {
         st === 'todo' ? 'To send' : st === 'sent' ? 'Sent' : 'Replied',
         g.sentAt ? new Date(g.sentAt).toISOString().slice(0, 10) : '', g.sentVia]
         .concat(LEGS.map(function (l) { return word[r[l.id]] || ''; }))
-        .concat([g.phone, g.email, g.note, g.internal, linkFor(g)]).map(q).join(','));
+        .concat([g.checkinMsg, g.phone, g.email, g.note, g.internal, linkFor(g)]).map(q).join(','));
     });
     return lines.join('\n');
   }
@@ -1830,6 +2069,7 @@ window.INVITATION = (function () {
     }
 
     return { connect: connect, changed: changed, isDirty: function () { return dirty; },
+      token: function () { return token; },
       readAccess: readAccess, writeAccess: writeAccess };
   })();
 
@@ -1910,6 +2150,7 @@ window.INVITATION = (function () {
     $('me').textContent = who;
     $('gatewrap').hidden = true; $('app').hidden = false;
     render();
+    loadCheckins();
   }
 
   $('gate').addEventListener('submit', function (e) {
