@@ -78,7 +78,7 @@ The **Passenger Manifest** is the shared guest list, on the same Pages site as t
 
     https://filippo-victoria-wedding.filippobriotto.workers.dev/ffaa3ad351b4/
 
-(It also opens on the GitHub address, but **Invite** links always use the Cloudflare one.)
+(It also opens on the GitHub address, which does not work from Namibia.)
 
 It is in a folder of its own, so a guest looking at their link learns nothing about where the list
 is. It works on a laptop or a phone, and the other person's changes show up within about 20 seconds.
@@ -113,9 +113,8 @@ asks for a GitHub token: [create a fine-grained token](https://github.com/settin
 with only the `Filippo-Victoria-Wedding` repository selected, **Contents: Read and write**, and an expiry after the last
 wedding date. Paste it, type the passphrase again, and pick your name.
 
-**Victoria:** nothing to set up. Filippo taps **Sign-in link for Victoria** and sends her the link.
-She taps it and the list opens, and it stays open on that phone. The link contains the passphrase,
-so send it only to her. She can also just open the page and type the passphrase.
+**Victoria:** nothing to set up. She opens the page, types the passphrase and picks her name, and
+it stays open on that phone. (A sign-in link made earlier, ending in `#join=…`, still works.)
 
 **When the token expires,** the page says so. Filippo uses **Set up or renew access** on the sign-in
 screen with a new token; nobody else has to do anything.
