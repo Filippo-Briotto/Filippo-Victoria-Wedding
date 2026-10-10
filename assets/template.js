@@ -37,7 +37,51 @@
     { from: '-2deg', rest: '-0.45deg' }
   ];
 
-  function pass(leg, t, names, index) {
+  /* Checking in happens on the pass itself: one question per leg, and a rubber
+     stamp across the ticket once the answer has reached the desk. */
+  function checkin(leg, t) {
+    var legCopy = t.legs[leg.id];
+    var ask = legCopy.checkinAsk || t.checkinAsk;
+    return '' +
+      '<div class="checkin" data-checkin="' + leg.id + '">' +
+        '<span class="checkin__ask">' + esc(ask) + '</span>' +
+        '<span class="checkin__opts" role="group" aria-label="' + esc(legCopy.toCity + ' — ' + ask) + '">' +
+          '<button type="button" data-v="yes" aria-pressed="false">' + esc(t.checkinYes) + '</button>' +
+          '<button type="button" data-v="no" aria-pressed="false">' + esc(t.checkinNo) + '</button>' +
+        '</span>' +
+      '</div>';
+  }
+
+  function stamp(leg, t) {
+    return '<span class="pass__stamp" data-stamp="' + leg.id + '" aria-hidden="true">' +
+      '<b></b><i>' + esc(I.FLIGHT + ' · ' + t.legs[leg.id].date) + '</i></span>';
+  }
+
+  /* Under the passes: the rest of the answer -- how many are coming, and a line
+     back to the couple -- and the one button that sends it all. */
+  function desk(t) {
+    return '' +
+    '<section class="desk paper" id="desk" aria-labelledby="desk-title">' +
+      '<h3 class="desk__title" id="desk-title">' + esc(t.deskTitle) + '</h3>' +
+      '<p class="desk__intro">' + esc(t.deskIntro) + '</p>' +
+      '<div class="desk__row">' +
+        '<span class="desk__label" id="desk-party-label">' + esc(t.lParty) + '</span>' +
+        '<span class="desk__stepper" role="group" aria-labelledby="desk-party-label">' +
+          '<button type="button" data-step="-1" aria-label="' + esc(t.partyFewer) + '">−</button>' +
+          '<output id="desk-party" aria-live="polite">1</output>' +
+          '<button type="button" data-step="1" aria-label="' + esc(t.partyMore) + '">+</button>' +
+        '</span>' +
+      '</div>' +
+      '<label class="desk__label" for="desk-msg">' + esc(t.lMessage) + '</label>' +
+      '<textarea class="desk__msg" id="desk-msg" rows="3" maxlength="2000"></textarea>' +
+      '<div class="desk__foot">' +
+        '<button type="button" class="desk__go" id="desk-go">' + esc(t.checkinSend) + '</button>' +
+        '<p class="desk__status" id="desk-status" aria-live="polite"></p>' +
+      '</div>' +
+    '</section>';
+  }
+
+  function pass(leg, t, names, index, withCheckin) {
     var legCopy = t.legs[leg.id];
     var detail = leg.venue || leg.time
       ? [leg.time, leg.venue].filter(Boolean).join(' · ')
@@ -74,6 +118,7 @@
             '<span class="route__city">' + esc(legCopy.fromCity) + '</span>' +
           '</div>' +
           '<div class="route__mid">' + planeGlyph() + '</div>' +
+          (withCheckin ? stamp(leg, t) : '') +
           '<div class="route__end route__end--to">' +
             '<span class="route__code">' + esc(leg.to) + '</span>' +
             '<span class="route__city">' + esc(legCopy.toCity) + '</span>' +
@@ -92,6 +137,7 @@
           '<p>' + esc(legCopy.blurb) + '</p>' +
           '<p class="pass__follow">' + esc(detail) + '</p>' +
         '</div>' +
+        (withCheckin ? checkin(leg, t) : '') +
       '</div>' +
 
       '<div class="pass__stub">' +
@@ -112,7 +158,7 @@
     '</article>';
   }
 
-  function letter(t, names, note) {
+  function letter(t, names, note, withCheckin) {
     var itinerary = I.LEGS.map(function (leg) {
       var legCopy = t.legs[leg.id];
       return '' +
@@ -154,6 +200,9 @@
         '<section class="letter__itin">' +
           '<h3>' + esc(t.itineraryTitle) + '</h3>' +
           '<ul class="itin">' + itinerary + '</ul>' +
+          (withCheckin
+            ? '<p class="letter__checkin"><button type="button" data-stage-to="tickets">' + esc(t.letterCheckin) + '</button></p>'
+            : '') +
         '</section>' +
         '<span class="sheet__no">' + esc(t.pageOf(1, 2)) + '</span>' +
       '</div>' +
@@ -631,7 +680,7 @@
 '.field__value{display:block;font-family:var(--mono);font-size:14px;font-weight:700;',
 '  letter-spacing:.04em;color:var(--ink);overflow-wrap:anywhere}',
 '.field--nowrap .field__value{white-space:nowrap;overflow-wrap:normal}',
-'.pass__route{display:flex;align-items:center;gap:14px;margin:20px 0 4px;padding:16px 0;',
+'.pass__route{position:relative;display:flex;align-items:center;gap:14px;margin:20px 0 4px;padding:16px 0;',
 '  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}',
 '.route__end{flex:1 1 0;min-width:0}',
 '.route__end--to{text-align:right}',
@@ -672,6 +721,64 @@
 '.barcode{display:flex;align-items:flex-end;height:40px}',
 '.barcode i{display:block;height:100%;background:var(--ink)}',
 
+/* ---------- checking in ---------- */
+'.checkin{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:16px;padding-top:14px;',
+'  border-top:1px dashed var(--line)}',
+'.checkin[hidden],.desk[hidden],.letter__checkin[hidden]{display:none}',
+'.checkin__ask{flex:1 1 210px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;',
+'  text-transform:uppercase;color:var(--ink-2)}',
+'.checkin__opts{display:flex;flex-wrap:wrap;gap:8px}',
+'.checkin__opts button,.desk__go,.letter__checkin button{font:inherit;font-family:var(--mono);font-size:12px;',
+'  letter-spacing:.14em;text-transform:uppercase;cursor:pointer;border-radius:2px;padding:9px 14px;',
+'  background:transparent;border:1px solid rgba(18,58,77,.5);color:var(--blue);',
+'  transition:background .2s,color .2s,border-color .2s}',
+'.checkin__opts button[data-v="no"]{border-color:rgba(109,97,83,.5);color:var(--ink-2)}',
+'.checkin__opts button:hover{background:rgba(18,58,77,.07)}',
+'.checkin__opts button[data-v="yes"][aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--ticket)}',
+'.checkin__opts button[data-v="no"][aria-pressed="true"]{background:var(--ink-2);border-color:var(--ink-2);color:var(--ticket)}',
+'.checkin__opts button:focus-visible,.desk button:focus-visible,.desk__msg:focus-visible,',
+'.letter__checkin button:focus-visible{outline:2px solid #8a5a34;outline-offset:2px}',
+/* A rubber stamp, inked once the desk has the answer: pressed on at an angle,
+   a little uneven, and multiplied into the ticket rather than sitting on it. */
+/* It lands across the flight path, between the two airports. */
+'.pass__stamp{position:absolute;z-index:3;left:50%;top:50%;pointer-events:none;white-space:nowrap;',
+'  display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 14px 6px;',
+'  border:2.5px solid currentColor;border-radius:5px;box-shadow:inset 0 0 0 1.5px var(--ticket),inset 0 0 0 2.5px currentColor;',
+'  font-family:var(--mono);text-transform:uppercase;color:var(--red);mix-blend-mode:multiply;',
+'  opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.7);',
+'  transition:opacity .18s ease-out,transform .32s cubic-bezier(.2,1.5,.45,1)}',
+'.pass__stamp b{font-size:17px;font-weight:700;letter-spacing:.2em;line-height:1.1}',
+'.pass__stamp i{font-style:normal;font-size:9px;letter-spacing:.24em}',
+'.pass__stamp.is-on{opacity:.82;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}',
+'.pass__stamp.is-no{color:#5d5348}',
+'.letter__checkin{margin:20px 0 0!important;text-align:center}',
+'.letter__checkin button:hover{background:rgba(18,58,77,.07)}',
+/* the desk: one more slip of ticket stock under the passes */
+'.desk{margin:6px 0 0;padding:clamp(20px,3vw,28px);border-radius:3px;',
+'  background:var(--sheen),var(--ticket-tex) 0 0/168px 168px repeat,var(--ticket);',
+'  box-shadow:var(--cut-edge),var(--lift);display:flex;flex-direction:column;gap:12px}',
+'.desk__title{margin:0;font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.34em;',
+'  text-transform:uppercase;color:var(--red)}',
+'.desk__intro{margin:0;font-size:16px;line-height:1.5;color:#4a4137}',
+'.desk__row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;',
+'  padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}',
+'.desk__label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}',
+'.desk__stepper{display:flex;align-items:center;gap:4px}',
+'.desk__stepper button{font:inherit;font-size:20px;line-height:1;width:38px;height:38px;cursor:pointer;',
+'  border-radius:2px;border:1px solid rgba(18,58,77,.4);background:transparent;color:var(--blue)}',
+'.desk__stepper output{min-width:40px;text-align:center;font-family:var(--mono);font-size:18px;font-weight:700}',
+'.desk__msg{width:100%;min-height:84px;resize:vertical;font:inherit;font-size:17px;line-height:1.5;',
+'  padding:10px 12px;border:1px solid var(--line);border-radius:2px;background:rgba(255,255,255,.5);color:var(--ink)}',
+'.desk__msg::placeholder{color:var(--ink-2);opacity:.8;font-style:italic}',
+'.desk__foot{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}',
+'.desk__go{background:var(--blue);border-color:var(--blue);color:var(--ticket);padding:11px 18px}',
+'.desk__go:hover{background:#0c2a39}',
+'.desk__go:disabled{opacity:.6;cursor:default}',
+'.desk__go[hidden]{display:none}',
+'.desk__status{margin:0;flex:1 1 220px;font-size:16px;color:var(--blue)}',
+'.desk__status.is-error{color:var(--red)}',
+'.desk.is-done .desk__status::before{content:"\\2713\\00a0\\00a0";color:var(--red)}',
+
 /* ---------- footer ---------- */
 '.pagefoot{margin:58px 0 0;color:var(--on-cloth);opacity:.6;font-family:var(--mono);font-size:10px;',
 '  letter-spacing:.24em;text-transform:uppercase;text-align:center}',
@@ -689,6 +796,9 @@
 '    background:linear-gradient(90deg,transparent,rgba(255,255,255,.7) 12%,rgba(255,255,255,.7) 88%,transparent)}',
 '  .stub__rows{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}',
 '  .stub__tag{margin-top:4px}',
+'  .pass__stamp{padding:5px 10px 4px}',
+'  .pass__stamp b{font-size:12px;letter-spacing:.14em}',
+'  .pass__stamp i{font-size:8px;letter-spacing:.16em}',
 '  .pass__grid--top,.pass__grid--bottom{grid-template-columns:1fr 1fr}',
 /* The envelope is left alone here: it scales off --w, so it keeps its
    composition -- stamp bottom right under the cancellation, address bottom left
@@ -715,7 +825,7 @@
 '@media print{',
 '  body{background:#fff!important;background-image:none!important;padding:0;display:block}',
 '  .env-wrap,.putback,.pagefoot,.tearline,.tickets__intro,.panel--letter,',
-'  .garden{display:none!important}',
+'  .garden,.checkin,.desk{display:none!important}',
 '  .panel--tickets,.panel--tickets[hidden]{display:block!important;width:100%;margin:0;animation:none}',
 /* on paper they lie square and separate again: the deal animation sets a
    transform, and an animation beats a plain declaration, so this has to shout */
@@ -854,6 +964,153 @@
     ].join('\n');
   }
 
+  /* The check-in desk, as it runs inside the invitation. Written as a real
+     function and serialised into the page, so it travels with a downloaded
+     file like everything else; it only ever talks to C.api. */
+  function checkinRuntime(C) {
+    var desk = document.getElementById('desk');
+    var go = document.getElementById('desk-go');
+    var statusEl = document.getElementById('desk-status');
+    var msg = document.getElementById('desk-msg');
+    var partyEl = document.getElementById('desk-party');
+    var answers = {}, people = C.people, saved = null, ref = '', sending = false, error = '';
+
+    function off() {
+      Array.prototype.forEach.call(document.querySelectorAll('.checkin,.desk,.letter__checkin'), function (el) {
+        el.hidden = true;
+      });
+    }
+    if (!window.fetch || !window.TextEncoder || !window.crypto || !crypto.subtle) return off();
+
+    /* the same fingerprint as checkinRef() in assets/invitation.js */
+    function fingerprint(key) {
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode('bfa-checkin:' + key)).then(function (buf) {
+        var bytes = new Uint8Array(buf), bin = '', i;
+        for (i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 32);
+      });
+    }
+    function remembered() {
+      try { return JSON.parse(localStorage.getItem('bfa-checkin:' + ref) || 'null'); } catch (e) { return null; }
+    }
+    function remember() {
+      try { localStorage.setItem('bfa-checkin:' + ref, JSON.stringify(saved)); } catch (e) {}
+    }
+    function copyLegs(legs) {
+      var out = {};
+      C.legs.forEach(function (id) { out[id] = (legs && legs[id]) || ''; });
+      return out;
+    }
+    function answered() {
+      return C.legs.some(function (id) { return !!answers[id]; });
+    }
+    function unchanged() {
+      return !!saved && people === saved.people && msg.value.trim() === (saved.message || '') &&
+        C.legs.every(function (id) { return answers[id] === (saved.legs[id] || ''); });
+    }
+    function day(ms) {
+      try {
+        return new Date(ms).toLocaleDateString(C.lang === 'it' ? 'it-IT' : 'en-GB', { day: 'numeric', month: 'long' });
+      } catch (e) { return new Date(ms).toDateString(); }
+    }
+
+    function paint() {
+      C.legs.forEach(function (id) {
+        var box = document.querySelector('[data-checkin="' + id + '"]');
+        Array.prototype.forEach.call(box.querySelectorAll('button'), function (b) {
+          b.setAttribute('aria-pressed', String(answers[id] === b.getAttribute('data-v')));
+        });
+        /* the stamp says what the desk has, not what is merely selected */
+        var st = document.querySelector('[data-stamp="' + id + '"]');
+        var v = saved && saved.legs[id] === answers[id] ? answers[id] : '';
+        st.className = 'pass__stamp' + (v ? ' is-on is-' + v : '');
+        st.firstChild.textContent = v === 'yes' ? C.t.stampYes : v === 'no' ? C.t.stampNo : '';
+      });
+      partyEl.textContent = people;
+      msg.placeholder = saved && saved.hasMessage ? C.t.kept : '';
+      var done = unchanged();
+      go.hidden = done;
+      go.disabled = sending || !ref;
+      go.textContent = sending ? C.t.sending : saved ? C.t.update : C.t.send;
+      statusEl.className = 'desk__status' + (error ? ' is-error' : '');
+      statusEl.textContent = error || (done ? C.t.done.replace('{date}', day(saved.at)) : '');
+      desk.classList.toggle('is-done', done);
+    }
+
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('.checkin button');
+      if (!b) return;
+      var id = b.closest('[data-checkin]').getAttribute('data-checkin'), v = b.getAttribute('data-v');
+      answers[id] = answers[id] === v ? '' : v;
+      error = '';
+      paint();
+    });
+    desk.addEventListener('click', function (e) {
+      var step = e.target.closest('[data-step]');
+      if (!step) return;
+      people = Math.min(20, Math.max(1, people + parseInt(step.getAttribute('data-step'), 10)));
+      paint();
+    });
+    msg.addEventListener('input', paint);
+
+    go.addEventListener('click', function () {
+      if (sending || !ref) return;
+      if (!answered()) { error = C.t.pick; return paint(); }
+      sending = true; error = '';
+      paint();
+      var text = msg.value.trim();
+      var kept = !!(saved && saved.hasMessage);
+      fetch(C.api + 'checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },   /* a simple request: no preflight */
+        body: JSON.stringify({ ref: ref, name: C.name, lang: C.lang, legs: answers, people: people,
+          message: text, keepMessage: kept })
+      }).then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      }).then(function (j) {
+        saved = { legs: copyLegs(answers), people: people, at: j.at || Date.now(), message: text, hasMessage: kept || !!text };
+        remember();
+      }, function () {
+        error = C.t.failed;
+      }).then(function () {
+        sending = false;
+        paint();
+      });
+    });
+
+    function adopt(s) {
+      saved = s;
+      answers = copyLegs(s.legs);
+      people = s.people || people;
+      msg.value = s.message || '';
+    }
+
+    answers = copyLegs();
+    paint();
+    fingerprint(C.key).then(function (r) {
+      ref = r;
+      var mine = remembered();
+      if (mine && mine.legs) adopt(mine);
+      paint();
+      /* answered on another phone? the desk has the newer copy */
+      return fetch(C.api + 'checkin/' + ref, { cache: 'no-store' }).then(function (res) {
+        return res.ok ? res.json() : null;
+      }).then(function (j) {
+        if (!j || !j.legs || (saved && saved.at >= j.at)) return;
+        adopt({ legs: j.legs, people: j.people, at: j.at, message: '', hasMessage: !!j.hasMessage });
+        remember();
+        paint();
+      }, function () {});
+    }, off);
+  }
+
+  function checkinScript(config) {
+    /* nothing in the data may close the script element early */
+    var data = JSON.stringify(config).replace(/</g, '\\u003c');
+    return '(' + checkinRuntime.toString() + ')(' + data + ');';
+  }
+
   /* Assemble one complete invitation file. */
   function buildDocument(options) {
     var opts = options || {};
@@ -871,7 +1128,11 @@
     var envelope = opts.envelope || I.ENVELOPE;
     var note = String(opts.note || '').trim();
     var fontCss = opts.fontCss || '';
-    var passes = I.LEGS.map(function (leg, i) { return pass(leg, t, names, i); }).join('');
+    /* The guest's link (the part after the #) is what a check-in is filed
+       under, so without one -- a blank invitation -- there is nobody to check in. */
+    var checkinKey = String(opts.checkinKey || '').replace(/^.*#/, '');
+    var withCheckin = !!checkinKey;
+    var passes = I.LEGS.map(function (leg, i) { return pass(leg, t, names, i, withCheckin); }).join('');
 
     return '<!doctype html>\n' +
 '<html lang="' + t.htmlLang + '">\n' +
@@ -923,15 +1184,30 @@
 '<p class="putback">' + esc(t.backToEnvelope) + '</p>\n' +
 
 '<section class="panel panel--letter" id="panel-letter" hidden>' +
-  letter(t, names, note) +
+  letter(t, names, note, withCheckin) +
 '</section>\n' +
 '<section class="panel panel--tickets" id="panel-tickets" hidden>' +
   '<p class="tearline"><button type="button" class="tearoff" id="btn-print">' + esc(t.printTickets) + '</button></p>' +
   passes +
+  (withCheckin ? desk(t) : '') +
 '</section>\n' +
 
 '<p class="pagefoot">' + esc(t.tagline) + '</p>\n' +
 '<script>\n' + script() + '\n<\/script>\n' +
+(withCheckin ? '<script>\n' + checkinScript({
+  api: I.CHECKIN_API,
+  key: checkinKey,
+  name: String(opts.passenger || '').replace(/\s+/g, ' ').trim(),
+  lang: lang,
+  legs: I.LEGS.map(function (leg) { return leg.id; }),
+  /* "Anna & Marco" are two unless they say otherwise */
+  people: names.first ? names.first.split('&').length : 1,
+  t: {
+    stampYes: t.stampYes, stampNo: t.stampNo, send: t.checkinSend, update: t.checkinUpdate,
+    sending: t.checkinSending, done: t.checkinDone, pick: t.checkinPick, failed: t.checkinFailed,
+    kept: t.messageKept
+  }
+}) + '\n<\/script>\n' : '') +
 '</body>\n</html>\n';
   }
 

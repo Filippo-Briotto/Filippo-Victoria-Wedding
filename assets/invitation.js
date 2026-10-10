@@ -39,6 +39,11 @@ window.INVITATION = (function () {
      sees a request for the page and nothing else. */
   var SITE = 'https://filippo-victoria-wedding.filippobriotto.workers.dev/56e45cd6399d/';
 
+  /* Where a guest's check-in goes: the small worker that sits in front of the
+     site on Cloudflare (worker/index.js). Always the Cloudflare address, so the
+     GitHub Pages copy and a downloaded file reply to the same place. */
+  var CHECKIN_API = SITE.replace(/^(https?:\/\/[^\/]+).*$/, '$1') + '/api/';
+
   var FLIGHT = '1D0';
   var CLASS = 'First';
 
@@ -129,6 +134,26 @@ window.INVITATION = (function () {
       tagline: 'Join us as we say “I do”',
       detailsToFollow: 'Full details to follow',
 
+      checkinAsk: 'Will you be on this flight?',
+      checkinYes: 'Check in',
+      checkinNo: 'Can’t make it',
+      stampYes: 'Checked in',
+      stampNo: 'Not travelling',
+      deskTitle: 'Check-in desk',
+      deskIntro: 'Answer on each boarding pass above, then confirm here. You can come back and change your answers at any time.',
+      lParty: 'Passengers on this booking',
+      partyFewer: 'One fewer',
+      partyMore: 'One more',
+      lMessage: 'A message for Filippo & Victoria (optional)',
+      messageKept: 'Your message reached us. Write here only to replace it.',
+      checkinSend: 'Confirm check-in',
+      checkinUpdate: 'Update check-in',
+      checkinSending: 'Sending…',
+      checkinDone: 'Checked in on {date}. Thank you — we can’t wait to see you.',
+      checkinPick: 'First choose “Check in” or “Can’t make it” on at least one boarding pass.',
+      checkinFailed: 'The check-in desk could not be reached. Check your connection and try again.',
+      letterCheckin: 'Check in on your boarding passes',
+
       legs: {
         ita: {
           title: 'The party',
@@ -152,7 +177,8 @@ window.INVITATION = (function () {
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
           date: '2027 · TBA',
-          dateLong: '2027, date to be announced'
+          dateLong: '2027, date to be announced',
+          checkinAsk: 'Will you be on this flight? We will confirm the date.'
         }
       }
     },
@@ -206,6 +232,26 @@ window.INVITATION = (function () {
       tagline: 'Unisciti a noi quando diremo “sì”',
       detailsToFollow: 'Dettagli a seguire',
 
+      checkinAsk: 'Sarai su questo volo?',
+      checkinYes: 'Check-in',
+      checkinNo: 'Non ci sarò',
+      stampYes: 'Check-in fatto',
+      stampNo: 'Non in viaggio',
+      deskTitle: 'Banco check-in',
+      deskIntro: 'Rispondi su ogni carta d’imbarco qui sopra, poi conferma qui. Puoi tornare e cambiare le risposte quando vuoi.',
+      lParty: 'Passeggeri su questa prenotazione',
+      partyFewer: 'Uno in meno',
+      partyMore: 'Uno in più',
+      lMessage: 'Un messaggio per Filippo e Victoria (facoltativo)',
+      messageKept: 'Il tuo messaggio ci è arrivato. Scrivi qui solo per sostituirlo.',
+      checkinSend: 'Conferma il check-in',
+      checkinUpdate: 'Aggiorna il check-in',
+      checkinSending: 'Invio…',
+      checkinDone: 'Check-in fatto il {date}. Grazie — non vediamo l’ora di vederti.',
+      checkinPick: 'Prima scegli “Check-in” o “Non ci sarò” su almeno una carta d’imbarco.',
+      checkinFailed: 'Non riusciamo a raggiungere il banco check-in. Controlla la connessione e riprova.',
+      letterCheckin: 'Fai il check-in sulle carte d’imbarco',
+
       legs: {
         ita: {
           title: 'La festa',
@@ -229,7 +275,8 @@ window.INVITATION = (function () {
           fromCity: 'Amsterdam',
           toCity: 'Windhoek',
           date: '2027 · TBA',
-          dateLong: '2027, data da annunciare'
+          dateLong: '2027, data da annunciare',
+          checkinAsk: 'Sarai su questo volo? Ti confermeremo la data.'
         }
       }
     }
@@ -263,6 +310,23 @@ window.INVITATION = (function () {
 
   function guestLink(data) {
     return SITE + '#' + encodePayload(data);
+  }
+
+  /* A check-in is filed under a fingerprint of the guest's own link: the part
+     after the #, hashed. The invitation works it out from the link it was
+     opened with, and the guest list from the link it sent, so the two meet
+     without the link itself -- or the note inside it -- ever reaching the
+     server, and links sent before check-in existed still match.
+     The invitation document repeats this in its own script (template.js,
+     checkinScript); the two must agree. Resolves '' without WebCrypto. */
+  function checkinRef(fragment) {
+    var key = String(fragment || '').replace(/^.*#/, '');
+    if (!key || !window.crypto || !crypto.subtle) return Promise.resolve('');
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode('bfa-checkin:' + key)).then(function (buf) {
+      var bytes = new Uint8Array(buf), bin = '', i;
+      for (i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 32);
+    });
   }
 
   function esc(value) {
@@ -547,6 +611,8 @@ window.INVITATION = (function () {
     COUPLE: COUPLE,
     FLIGHT: FLIGHT,
     SITE: SITE,
+    CHECKIN_API: CHECKIN_API,
+    checkinRef: checkinRef,
     encodePayload: encodePayload,
     decodePayload: decodePayload,
     guestLink: guestLink,
