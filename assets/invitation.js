@@ -87,7 +87,7 @@ window.INVITATION = (function () {
   var COPY = {
     en: {
       htmlLang: 'en',
-      docTitle: 'Briotto Family Airline — Boarding Pass',
+      docTitle: 'Briotto Family Airline · Boarding Pass',
       brand: 'Briotto Family Airline',
       strapline: 'Wedding invitation · First class service',
 
@@ -160,7 +160,7 @@ window.INVITATION = (function () {
       checkinSend: 'Confirm check-in',
       checkinUpdate: 'Update check-in',
       checkinSending: 'Sending…',
-      checkinDone: 'Checked in on {date}. Thank you — we can’t wait to see you.',
+      checkinDone: 'Checked in on {date}. Thank you! We can’t wait to see you.',
       checkinPick: 'First choose “Yes, I’ll be there” or “Sorry, I can’t” on at least one boarding pass.',
       checkinFailed: 'The check-in desk could not be reached. Check your connection and try again.',
       letterCheckin: 'RSVP on your boarding passes',
@@ -184,7 +184,7 @@ window.INVITATION = (function () {
         },
         ams: {
           title: 'The vows',
-          blurb: 'An intimate ceremony. No reception — just the two of us saying it out loud, and you there to hear it.',
+          blurb: 'An intimate ceremony with no reception: just the two of us saying it out loud, and you there to hear it.',
           fromCity: 'Italy',
           toCity: 'Amsterdam',
           date: '29 DEC 2026',
@@ -204,7 +204,7 @@ window.INVITATION = (function () {
 
     it: {
       htmlLang: 'it',
-      docTitle: 'Briotto Family Airline — Carta d’imbarco',
+      docTitle: 'Briotto Family Airline · Carta d’imbarco',
       brand: 'Briotto Family Airline',
       strapline: 'Invito di nozze · Servizio di prima classe',
 
@@ -275,7 +275,7 @@ window.INVITATION = (function () {
       checkinSend: 'Conferma il check-in',
       checkinUpdate: 'Aggiorna il check-in',
       checkinSending: 'Invio…',
-      checkinDone: 'Check-in fatto il {date}. Grazie — non vediamo l’ora di vederti.',
+      checkinDone: 'Check-in fatto il {date}. Grazie! Non vediamo l’ora di vederti.',
       checkinPick: 'Prima scegli “Sì, ci sarò” o “Mi dispiace, non posso” su almeno una carta d’imbarco.',
       checkinFailed: 'Non riusciamo a raggiungere il banco check-in. Controlla la connessione e riprova.',
       letterCheckin: 'Rispondi sulle carte d’imbarco',
@@ -298,7 +298,7 @@ window.INVITATION = (function () {
         },
         ams: {
           title: 'Le promesse',
-          blurb: 'Una cerimonia intima. Nessun ricevimento — solo noi due che lo diciamo ad alta voce, e tu lì ad ascoltare.',
+          blurb: 'Una cerimonia intima, senza ricevimento: solo noi due che lo diciamo ad alta voce, e tu lì ad ascoltare.',
           fromCity: 'Italia',
           toCity: 'Amsterdam',
           date: '29 DIC 2026',

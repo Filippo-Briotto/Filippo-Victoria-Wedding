@@ -21,7 +21,7 @@ require(path.join(root, 'assets', 'template.js'));
 
 const html = window.INVITATION.buildDocument({
   passenger: 'Rosemary Pinehas',
-  note: 'We could not picture a single one of these three days without you in it.\n\nBring nothing but yourself — and an appetite for the Italian leg.',
+  note: 'We could not picture a single one of these three days without you in it.\n\nBring nothing but yourself and an appetite for the Italian leg.',
   lang: 'en',
   /* a made-up link, so the check-in desk shows; replies from it land in the
      manifest as a check-in it cannot match, to be ignored */
