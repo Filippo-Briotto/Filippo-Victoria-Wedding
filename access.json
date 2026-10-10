@@ -1,0 +1,9 @@
+{
+ "format": "bfa-manifest",
+ "v": 1,
+ "kdf": "PBKDF2-SHA256",
+ "iter": 310000,
+ "salt": "dVJbTknxYZo3VKp2+F/Wew==",
+ "iv": "4+EE4e+kLYWu8iqY",
+ "ct": "9n71v3FXMQIHB0ywSMVOwCogFu+qcDNQNffO6uD0DkPUi1R28pTYRk5EpA6+e+OQRXRtMIhYlVQyypWvp491qGt33YdP0nxqFFVBBi4UXflBM9N+eTILKUi7wmdVYJvKzLN6Dxl3/sKUkO+r4n/Hr/bSTvzs5RiHMQ=="
+}
