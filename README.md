@@ -22,7 +22,13 @@ phones — WhatsApp and mail apps download it and then dead-end. A link opens in
 
 The invitation is published at an unguessable address:
 
-    https://filippo-briotto.github.io/Filippo-Victoria-Wedding/56e45cd6399d/#<the guest>
+    https://filippo-victoria-wedding.filippobriotto.workers.dev/56e45cd6399d/#<the guest>
+
+The same files are also on GitHub Pages, at
+`https://filippo-briotto.github.io/Filippo-Victoria-Wedding/`, but links go out on the
+Cloudflare address because `github.io` cannot be reached from some networks: from Namibia it
+fails with `ERR_CONNECTION_FAILED`. Cloudflare publishes `docs/` by itself every time this
+branch changes, using [`wrangler.jsonc`](wrangler.jsonc).
 
 Nothing links to it, it carries `noindex,nofollow`, and `docs/robots.txt` tells every crawler
 to stay away — so it is reachable only by someone you hand the address to (and by anyone they
@@ -70,7 +76,9 @@ saying *“this is the development copy”*, you have opened `index.html` by mis
 
 The **Passenger Manifest** is the shared guest list, on the same Pages site as the invitation:
 
-    https://filippo-briotto.github.io/Filippo-Victoria-Wedding/ffaa3ad351b4/
+    https://filippo-victoria-wedding.filippobriotto.workers.dev/ffaa3ad351b4/
+
+(It also opens on the GitHub address, but **Invite** links always use the Cloudflare one.)
 
 It is in a folder of its own, so a guest looking at their link learns nothing about where the list
 is. It works on a laptop or a phone, and the other person's changes show up within about 20 seconds.
