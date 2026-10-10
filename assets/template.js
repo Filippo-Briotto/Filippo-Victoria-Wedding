@@ -224,19 +224,23 @@
 /* headroom for the letter and the passes to rise out of the envelope */
 'body{margin:0;padding:clamp(168px,18vh,196px) 16px 96px;min-height:100vh;',
 '  font-family:"Cormorant Garamond",Garamond,"Hoefler Text","Times New Roman",serif;',
-/* The mail lies on a plain, near-white surface -- the invitation carries all the
-   colour, so the ground stays out of its way. There is deliberately no pool of
+/* The mail lies on a linen cloth -- plain, so the invitation carries all the
+   colour and the ground stays out of its way. There is deliberately no pool of
    light over it: any such overlay is only ever as tall as the viewport, so down
    a long page it ends in a hard horizontal edge across the middle of the
-   surface. The flowers do the framing instead. */
-'  color:#201c17;background-color:#f4efe6;',
-'  background-image:var(--paper-tex);background-size:300px 300px;',
+   surface. The flowers do the framing instead.
+   It is cloth, not paper, and a shade deeper and greyer than the stationery:
+   it used to be the writing-paper tile itself, and with the same texture on
+   both the envelope and the letter simply dissolved into the ground. */
+'  color:#201c17;background-color:#e4ddcf;',
+'  background-image:var(--ground-tex);background-size:240px 240px;',
 '  display:flex;flex-direction:column;align-items:center;position:relative}',
 ':root{--on-cloth:#6d5744;--paper:#f7f1e3;--paper-2:#efe6d3;--ink:#201c17;--ink-2:#6d6153;',
 '  --line:#cbbca1;--blue:#123a4d;--red:#a83f2a;--gold:#b3893f;',
 '  --mono:"Courier Prime","Courier New",monospace;',
 '  --paper-tex:url(' + (tex.paper || '') + ');',
 '  --motif-tex:url(' + (tex.motif || '') + ');',
+'  --ground-tex:url(' + (tex.ground || '') + ');',
 '  --bloom-a:url(' + (flo.cornerA || '') + ');',
 '  --bloom-b:url(' + (flo.cornerB || '') + ');',
 /* Boarding passes are not printed on writing paper. Ticket stock is thinner and
@@ -275,14 +279,19 @@
 '.envelope{position:absolute;left:0;top:0;width:100%;aspect-ratio:1.62;perspective:1500px;',
 '  transform-style:preserve-3d;',
 '  transform-origin:50% 0;transition:transform .85s cubic-bezier(.3,.75,.25,1) .06s,filter .5s}',
+/* The envelope lies ON the surface, so it casts a shadow onto it: a tight one
+   where the paper touches, and a soft one spreading out below. */
 '.env-back{position:absolute;inset:0;border-radius:4px;background:#d9cbaf;pointer-events:none;',
-'  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 28px 58px -28px rgba(60,40,20,.5)}',
+'  box-shadow:0 1px 0 rgba(255,255,255,.35) inset,0 0 0 1px rgba(110,86,52,.16),',
+'    0 2px 4px -1px rgba(60,40,20,.22),0 18px 30px -14px rgba(60,40,20,.38),',
+'    0 44px 70px -30px rgba(60,40,20,.42)}',
 
 /* the address face */
 '.env-front{position:absolute;inset:0;z-index:3;border-radius:4px;',
 '  background:var(--paper-tex) 0 0/216px 216px repeat,var(--paper);',
 '  pointer-events:none;',
-'  box-shadow:0 6px 14px -12px rgba(60,44,20,.75) inset,0 -1px 0 rgba(120,100,64,.22) inset}',
+'  box-shadow:0 6px 14px -12px rgba(60,44,20,.75) inset,0 -1px 0 rgba(120,100,64,.22) inset,',
+'    0 0 0 1px rgba(110,86,52,.18),0 1px 0 1px rgba(255,255,255,.35) inset}',
 /* the airmail band: fine, and at the edge where it belongs */
 '.env-front::before{content:"";position:absolute;inset:0;border-radius:4px;padding:6px;',
 '  background:repeating-linear-gradient(115deg,var(--red) 0 7px,transparent 7px 15px,',
@@ -365,7 +374,7 @@
 
 /* the quieter envelope: no stripes, a hairline rule, teal wax */
 /* the quieter envelope: no stripes, just a hairline plate rule */
-'body[data-envelope="quiet"] .env-front{background:var(--paper-tex) 0 0/216px 216px repeat,#faf3e3}',
+'body[data-envelope="quiet"] .env-front{background:var(--sheen),var(--paper-tex) 0 0/216px 216px repeat,#fcf7eb}',
 'body[data-envelope="quiet"] .env-front::before{background:none;padding:0;',
 '  border:1px solid rgba(120,100,64,.4);inset:9px;border-radius:2px;opacity:1;',
 '  -webkit-mask:none;mask:none}',

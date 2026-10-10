@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the paper, ticket stock and printed-cotton tiles as real images.
+"""Render the paper, ticket stock, printed-cotton and linen tiles as real images.
 
     python3 tools/build-textures.py
 
@@ -103,6 +103,34 @@ def ticket(size=320):
     return Image.fromarray(np.clip(base, 0, 255).astype(np.uint8))
 
 
+def ground(size=320):
+    """The surface the mail lies on: a linen tablecloth, not more paper. It
+    used to be the writing-paper tile itself, so the envelope and the letter
+    had nothing to stand apart from. Cloth is woven -- warp and weft crossing,
+    with the slubs that make linen look like linen -- and a shade deeper and
+    greyer than the stationery, so a sheet of paper laid on it reads as one."""
+    yy, xx = np.mgrid[0:size, 0:size]
+    pitch = size / 80                              # threads per tile, each way
+    # the weave: every thread rises and dips as it passes over and under
+    over = np.sin(xx * np.pi * 2 / pitch) * np.sin(yy * np.pi * 2 / pitch)
+    # thread-to-thread thickness. Kept to the high frequencies: with any weight
+    # down low these merge into broad bands and the cloth turns to plaid.
+    warp = field(size, 0.45, stretch=(0.04, 1.0))
+    weft = field(size, 0.45, stretch=(1.0, 0.04))
+    slub = field(size, 0.8, stretch=(0.03, 1.0))    # the thick runs in linen yarn
+    mottle = field(size, 2.6)
+    grain = field(size, 0.35)
+
+    light = (1.0 + 0.02 * over + 0.03 * warp + 0.03 * weft
+             + 0.035 * np.clip(slub - 0.25, 0, None) + 0.012 * mottle + 0.016 * grain)
+    base = np.stack([
+        np.full((size, size), 228.0) * light,
+        np.full((size, size), 221.0) * light,
+        np.full((size, size), 207.0) * light,
+    ], axis=-1)
+    return Image.fromarray(np.clip(base, 0, 255).astype(np.uint8))
+
+
 # The bold band is odelela -- the printed cotton of Owambo dress, and the
 # language the Namibian invitations in the reference are built from. Its palette
 # is not a matter of taste: it is fuchsia, scarlet and dark plum printed ON
@@ -172,6 +200,8 @@ def main():
         'paper': (paper(), 93),
         'ticket': (ticket(), 92),
         'motif': (motif(), 88),
+        # last, so adding it left the seeded tiles above exactly as they were
+        'ground': (ground(), 90),
     }
     out = {}
     for name, (img, quality) in tiles.items():
@@ -181,7 +211,7 @@ def main():
 
     dest = ROOT / 'assets' / 'textures.js'
     dest.write_text(
-        '/* Paper, ticket stock and the odelela print, rendered by tools/build-textures.py.\n'
+        '/* Paper, ticket stock, the odelela print and the linen ground, rendered by tools/build-textures.py.\n'
         ' *\n'
         ' * Seamless tiles: they are built in the frequency domain, and an inverse FFT\n'
         ' * is periodic, so they repeat without a join.\n'

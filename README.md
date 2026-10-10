@@ -157,7 +157,7 @@ just below, in both languages.
 | `assets/fonts/` | the source `.woff2` files and their SIL Open Font Licences |
 | `example-invitation.html` | a minted sample, for looking at and test-printing |
 | `tools/build-fonts.py` | regenerates `assets/fonts.js` from `assets/fonts/` |
-| `tools/build-textures.py` | renders the paper, ticket and odelela tiles into `assets/textures.js` |
+| `tools/build-textures.py` | renders the paper, ticket, odelela and linen tiles into `assets/textures.js` |
 | `tools/build-flowers.py` | paints the watercolour flowers into `assets/flowers.js` |
 | `tools/prepare-stamp-art.py` | fits a round stamp illustration to the frame |
 | `tools/build-stamp-art.py` | regenerates `assets/stamp-art.js` from `assets/stamp/` |
@@ -210,13 +210,14 @@ file, edit it, reload. The only generated file is `assets/fonts.js`.
   page's worth of words on an A4 page and still be readable, so the first sheet runs longer than
   the paper and the crease is dropped rather than drawn through the middle of a paragraph.
 - **It is meant to read as paper on a table, not as cards on a page.** Everything lies on a
-  plain near-white surface inside a painted floral frame; light falls across each sheet, the cut
+  plain linen cloth inside a painted floral frame — woven, and a shade deeper than the
+  stationery, so the paper stands apart from what it lies on; light falls across each sheet, the cut
   edge catches it, and the far edge curves off. There is deliberately no pool of light over the surface: any such
   overlay is only ever as tall as the viewport, so down a long page it ends in a hard horizontal
   edge across the middle of the ground.
 - **The papers are real textures**, rendered by
   [`tools/build-textures.py`](tools/build-textures.py) into `assets/textures.js`: writing stock
-  for the letter and the envelope, thinner and whiter ticket stock for the passes. They are built
+  for the letter and the envelope, thinner and whiter ticket stock for the passes, and a linen weave for the cloth underneath. They are built
   in the frequency domain — a random field shaped by a 1/f falloff and inverse-transformed —
   which gives layered scales rather than one uniform fizz, fibre by stretching the falloff along
   an axis, and seamless tiles for free, since an inverse FFT is periodic. Rerun it to change
