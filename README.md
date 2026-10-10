@@ -76,11 +76,20 @@ saying *“this is the development copy”*, you have opened `index.html` by mis
 ## Checking in (RSVP)
 
 Guests answer on the boarding passes themselves. Each pass asks *Will you be on this flight?*
-with **Check in** and **Can't make it**. Under the passes is a **check-in desk** where they say
+with **Yes, I'll be there** and **Sorry, I can't**. Under the passes is a **check-in desk** where they say
 how many are coming on their invitation, can leave you a message, and press **Confirm
 check-in**. Once the answer reaches the desk, a rubber stamp lands across each pass: *Checked
-in* or *Not travelling*. The letter has a button pointing at the passes, and guests can come
-back and change their answers at any time, from any device.
+in* or *Not travelling*. Guests can come back and change their answers at any time, from any
+device.
+
+Because the passes do not look like a form, RSVP is pointed out at every step, for older guests
+especially. When the envelope opens, the passes button reads **See the boarding passes & RSVP** in
+red. The letter has a red **RSVP on your boarding passes** button, and the bottom bar says
+**Passes & RSVP**. On the passes, handwritten notes in red ink with arrows point at what to do:
+*Please reply on each pass below* above the passes, *Please let us know here* on each pass, and
+*Last step: press here to send* by the Confirm button. Each note goes away once its question is
+answered, and all of them once the answers have been sent. None of this shows when the page has
+no check-in (opened without a guest link), and none of it prints.
 
 The answers turn up in the Passenger Manifest within about half a minute. Each guest's answers
 for the three legs and their head count are filled in for you, and their message shows on their
