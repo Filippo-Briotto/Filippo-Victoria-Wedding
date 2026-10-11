@@ -47,6 +47,12 @@ window.INVITATION = (function () {
   var FLIGHT = '1D0';
   var CLASS = 'First';
 
+  /* For guests who would rather not carry an envelope across borders. Printed
+     small under the gifts paragraph in the letter; empty leaves the line out.
+     The BIC is for banks outside Europe's SEPA area, Namibia's among them. */
+  var IBAN = 'NL40 BUNQ 2162 2275 09';
+  var BIC = 'BUNQNL2A';
+
   var LEGS = [
     {
       id: 'ita',
@@ -125,6 +131,7 @@ window.INVITATION = (function () {
       pageOf: function (n, of) { return 'Page ' + n + ' of ' + of; },
       noteTitle: 'A note for you',
       giftsTitle: 'Duty free · Gifts',
+      giftsAbroad: 'From abroad',
       giftsBody: 'Having you on board is the only gift we need, so please travel light: no parcels, as between three countries we would have nowhere to put them. If you would still like to give us something, a contribution in an envelope towards our life together would mean the world to us.',
       signOff: 'With all our love,',
       smallPrint: 'This booking is non-transferable, infinitely refundable in love, and requires no luggage but yourselves. Changes to the itinerary will be communicated by the Briotto Family Airline in due course.',
@@ -242,6 +249,7 @@ window.INVITATION = (function () {
       pageOf: function (n, of) { return 'Pagina ' + n + ' di ' + of; },
       noteTitle: 'Due righe per te',
       giftsTitle: 'Duty free · Regali',
+      giftsAbroad: 'Dall’estero',
       giftsBody: 'Averti a bordo è l’unico regalo che ci serve, quindi niente pacchi, per favore: tra tre paesi non sapremmo dove metterli. Se vuoi comunque farci un regalo, un contributo in busta per la nostra vita insieme ci renderà felicissimi.',
       signOff: 'Con tutto il nostro affetto,',
       smallPrint: 'Questa prenotazione non è cedibile, è infinitamente rimborsabile in affetto e non richiede altro bagaglio che voi stessi. Eventuali modifiche all’itinerario saranno comunicate dalla Briotto Family Airline a tempo debito.',
@@ -657,6 +665,8 @@ window.INVITATION = (function () {
     guestLink: guestLink,
     ENVELOPE: ENVELOPE,
     CLASS: CLASS,
+    IBAN: IBAN,
+    BIC: BIC,
     LEGS: LEGS,
     COPY: COPY,
     esc: esc,

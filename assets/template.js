@@ -249,6 +249,10 @@
         '<section class="letter__gifts">' +
           '<h3>' + esc(t.giftsTitle) + '</h3>' +
           '<p>' + esc(t.giftsBody) + '</p>' +
+          (I.IBAN
+            ? '<p class="letter__iban">' + esc(t.giftsAbroad) + ' · IBAN <span>' + esc(I.IBAN) + '</span>' +
+                (I.BIC ? ' · BIC <span>' + esc(I.BIC) + '</span>' : '') + '</p>'
+            : '') +
         '</section>' +
         noteBlock +
 
@@ -729,6 +733,8 @@
 '.letter__greeting{font-size:1.18em;color:var(--blue)}',
 '.letter__itin{margin:24px 0 4px}',
 '.letter__gifts{margin:0 0 4px}',
+'.letter .letter__iban{margin:-4px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-2)}',
+'.letter__iban span{white-space:nowrap}',
 '.letter__itin h3,.letter__note h3,.letter__gifts h3{margin:0 0 12px;font-family:var(--mono);font-size:11px;',
 '  letter-spacing:.24em;text-transform:uppercase;color:var(--ink-2);font-weight:400}',
 '.itin{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}',
