@@ -288,6 +288,13 @@ window.INVITATION = (function () {
   var FLIGHT = '1D0';
   var CLASS = 'First';
 
+  /* For guests who would rather not carry an envelope across borders. Printed
+     small under the gifts paragraph in the letter; empty leaves the line out.
+     The BIC is for banks outside Europe's SEPA area, Namibia's among them. */
+  var IBAN = 'NL40 BUNQ 2162 2275 09';
+  var BIC = 'BUNQNL2A';
+  var ACCOUNT_HOLDER = 'Filippo Briotto';
+
   var LEGS = [
     {
       id: 'ita',
@@ -365,6 +372,9 @@ window.INVITATION = (function () {
       itineraryTitle: 'Your itinerary',
       pageOf: function (n, of) { return 'Page ' + n + ' of ' + of; },
       noteTitle: 'A note for you',
+      giftsTitle: 'Duty free · Gifts',
+      giftsAbroad: 'From abroad',
+      giftsBody: 'Having you on board is the only gift we need, so please travel light: no parcels, as between three countries we would have nowhere to put them. If you would still like to give us something, a contribution in an envelope towards our life together would mean the world to us.',
       signOff: 'With all our love,',
       smallPrint: 'This booking is non-transferable, infinitely refundable in love, and requires no luggage but yourselves. Changes to the itinerary will be communicated by the Briotto Family Airline in due course.',
 
@@ -480,6 +490,9 @@ window.INVITATION = (function () {
       itineraryTitle: 'Il tuo itinerario',
       pageOf: function (n, of) { return 'Pagina ' + n + ' di ' + of; },
       noteTitle: 'Due righe per te',
+      giftsTitle: 'Duty free · Regali',
+      giftsAbroad: 'Dall’estero',
+      giftsBody: 'Averti a bordo è l’unico regalo che ci serve, quindi niente pacchi, per favore: tra tre paesi non sapremmo dove metterli. Se vuoi comunque farci un regalo, un contributo in busta per la nostra vita insieme ci renderà felicissimi.',
       signOff: 'Con tutto il nostro affetto,',
       smallPrint: 'Questa prenotazione non è cedibile, è infinitamente rimborsabile in affetto e non richiede altro bagaglio che voi stessi. Eventuali modifiche all’itinerario saranno comunicate dalla Briotto Family Airline a tempo debito.',
 
@@ -894,6 +907,9 @@ window.INVITATION = (function () {
     guestLink: guestLink,
     ENVELOPE: ENVELOPE,
     CLASS: CLASS,
+    IBAN: IBAN,
+    BIC: BIC,
+    ACCOUNT_HOLDER: ACCOUNT_HOLDER,
     LEGS: LEGS,
     COPY: COPY,
     esc: esc,
@@ -1159,6 +1175,16 @@ window.INVITATION = (function () {
       '</div>' +
 
       '<div class="sheet' + (withPicture ? ' sheet--pictured' : '') + ' paper">' +
+        '<section class="letter__gifts">' +
+          '<h3>' + esc(t.giftsTitle) + '</h3>' +
+          '<p>' + esc(t.giftsBody) + '</p>' +
+          (I.IBAN
+            ? '<p class="letter__iban">' + esc(t.giftsAbroad) + ' · ' +
+                (I.ACCOUNT_HOLDER ? '<span>' + esc(I.ACCOUNT_HOLDER) + '</span> · ' : '') +
+                '<span>IBAN ' + esc(I.IBAN) + '</span>' +
+                (I.BIC ? ' · <span>BIC ' + esc(I.BIC) + '</span>' : '') + '</p>'
+            : '') +
+        '</section>' +
         noteBlock +
 
         '<footer class="letter__sign">' +
@@ -1637,7 +1663,10 @@ window.INVITATION = (function () {
 '.letter p{margin:0 0 13px}',
 '.letter__greeting{font-size:1.18em;color:var(--blue)}',
 '.letter__itin{margin:24px 0 4px}',
-'.letter__itin h3,.letter__note h3{margin:0 0 12px;font-family:var(--mono);font-size:11px;',
+'.letter__gifts{margin:0 0 4px}',
+'.letter .letter__iban{margin:-4px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-2)}',
+'.letter__iban span{white-space:nowrap}',
+'.letter__itin h3,.letter__note h3,.letter__gifts h3{margin:0 0 12px;font-family:var(--mono);font-size:11px;',
 '  letter-spacing:.24em;text-transform:uppercase;color:var(--ink-2);font-weight:400}',
 '.itin{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}',
 '.itin__row{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:baseline;',
