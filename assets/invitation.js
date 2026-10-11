@@ -52,6 +52,7 @@ window.INVITATION = (function () {
      The BIC is for banks outside Europe's SEPA area, Namibia's among them. */
   var IBAN = 'NL40 BUNQ 2162 2275 09';
   var BIC = 'BUNQNL2A';
+  var ACCOUNT_HOLDER = 'Filippo Briotto';
 
   var LEGS = [
     {
@@ -667,6 +668,7 @@ window.INVITATION = (function () {
     CLASS: CLASS,
     IBAN: IBAN,
     BIC: BIC,
+    ACCOUNT_HOLDER: ACCOUNT_HOLDER,
     LEGS: LEGS,
     COPY: COPY,
     esc: esc,

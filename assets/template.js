@@ -250,8 +250,10 @@
           '<h3>' + esc(t.giftsTitle) + '</h3>' +
           '<p>' + esc(t.giftsBody) + '</p>' +
           (I.IBAN
-            ? '<p class="letter__iban">' + esc(t.giftsAbroad) + ' · IBAN <span>' + esc(I.IBAN) + '</span>' +
-                (I.BIC ? ' · BIC <span>' + esc(I.BIC) + '</span>' : '') + '</p>'
+            ? '<p class="letter__iban">' + esc(t.giftsAbroad) + ' · ' +
+                (I.ACCOUNT_HOLDER ? '<span>' + esc(I.ACCOUNT_HOLDER) + '</span> · ' : '') +
+                '<span>IBAN ' + esc(I.IBAN) + '</span>' +
+                (I.BIC ? ' · <span>BIC ' + esc(I.BIC) + '</span>' : '') + '</p>'
             : '') +
         '</section>' +
         noteBlock +
