@@ -20,7 +20,13 @@ Every leg flies **1D0**.
 **Send a link, not a file.** A `.html` attachment has no app associated with it on most
 phones — WhatsApp and mail apps download it and then dead-end. A link opens in any browser.
 
-The invitation is published at an unguessable address:
+Links from the Passenger Manifest are short, one code per guest:
+
+    https://filippo-victoria-wedding.filippobriotto.workers.dev/k7q2xa9m
+
+The invitation itself is published at an unguessable address, and the long links that went out
+before short links existed (and those from the minting desk) open it directly, carrying the guest
+in the fragment. They keep working:
 
     https://filippo-victoria-wedding.filippobriotto.workers.dev/56e45cd6399d/#<the guest>
 
@@ -32,10 +38,18 @@ branch changes, using [`wrangler.jsonc`](wrangler.jsonc).
 
 Nothing links to it, it carries `noindex,nofollow`, and `docs/robots.txt` tells every crawler
 to stay away — so it is reachable only by someone you hand the address to (and by anyone they
-forward it to; it is unfindable, not secret). The guest's name and note ride in the fragment,
-the part after the `#`, which browsers **never send to the server** — so they exist only in the
-link itself and in the reader's browser. GitHub sees a request for the page and nothing more.
-The one thing that does leave the browser is a guest's check-in, when they send it (below).
+forward it to; it is unfindable, not secret). In a long link the guest's name and note ride in
+the fragment, the part after the `#`, which browsers **never send to the server**, so they exist
+only in the link itself and in the reader's browser.
+
+A short link carries only its code, so what it says has to live somewhere: the manifest publishes
+each guest's names, language and note to the Cloudflare worker (below), which writes them into the
+invitation when the link is opened. That puts the notes in your Cloudflare account next to the
+check-ins, and buys two things: links short enough to read, and edits that reach a guest after
+the link went out. A code is worked out from the guest's id, so it never changes, and a code
+nobody was given finds nothing, so the invitation stays as unfindable as its folder. Until the
+manifest has published a guest (it does within a second or two of opening, with write access),
+their link is the long one.
 
 ### One-time setup
 
@@ -104,7 +118,7 @@ How it fits together:
   [`wrangler.jsonc`](wrangler.jsonc), so there is nothing to set up in the dashboard. Invitations
   always reply to the Cloudflare address, so the GitHub Pages copy and a downloaded file work too.
 - **How a check-in finds its guest.** A check-in is filed under a fingerprint (a SHA-256 hash) of
-  the guest's invitation link. The manifest works out the same fingerprint from the link it sent
+  the guest's invitation link: of its code for a short link, of its fragment for a long one. The manifest works out the same fingerprint from the link it sent
   and puts the two together, so links sent before check-in existed still match. The link itself,
   and the note inside it, are never sent anywhere. New links from the manifest also carry the
   guest's id (`k`), so nobody can work a guest's check-in out from their name alone. Links that
@@ -118,7 +132,7 @@ How it fits together:
   second password. When the token is renewed, check-ins keep working. A guest's invitation can
   read back that guest's own answers, but never their message.
 - **What Cloudflare holds:** the name printed on the invitation, the three answers, the head count
-  and the message, unencrypted, in your Cloudflare account. It is not public, unlike the GitHub
+  and the message, and for short links each guest's names, language and personal note, unencrypted, in your Cloudflare account. It is not public, unlike the GitHub
   repository, which is why the guest list itself stays encrypted and this does not need to be.
 
 To try the desk locally: `npx wrangler dev`, then open
@@ -144,8 +158,10 @@ is. It works on a laptop or a phone, and the other person's changes show up with
   builds it.
 - **Copy message** gives you the link plus a short covering text (edit it once under **Message
   text**, in English and Italian). **WhatsApp** opens a chat with it filled in.
-- **Mark as sent** records when, how, and which of you sent it. If you change the name, note or
-  language afterwards, the row says *changed since*, because the guest still has the old link.
+- **Mark as sent** records when, how, and which of you sent it. Change a guest's name, note or
+  language afterwards and a short link shows the change the next time they open it. A guest who
+  was sent a long link still has the old one, so their row says *changed since*: send again to
+  give them a short link.
 - **RSVP** per leg (Amsterdam, Windhoek, Italy), filled in by guests' own check-ins and
   editable by hand, **Our notes** for things the guest never sees,
   and **Export CSV** for a spreadsheet copy.

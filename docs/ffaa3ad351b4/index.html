@@ -719,6 +719,9 @@ window.INVITATION = (function () {
      the passes, first-name-only in the letter, and initial + surname on the
      tear-off stub the way the reference pass did it ("R. PINEHAS"). Names with
      two guests ("Anna & Marco Rossi") keep both given names in the greeting. */
+  /* Words that are said together with the name after them: father, mother. */
+  var TITLES = /^(tate|meme|mee)$/i;
+
   function nameForms(raw) {
     var name = String(raw || '').replace(/\s+/g, ' ').trim();
     if (!name) return { full: '', first: '', short: '' };
@@ -727,27 +730,34 @@ window.INVITATION = (function () {
     var surname = parts[parts.length - 1];
     var given = parts.slice(0, -1);
 
-    var joined = name.replace(/\s*(&|\band\b|\be\b)\s*/gi, ' & ');
+    /* "Francesca, Nicola & Alvise" is three people: a comma separates them
+       too, and three or more are listed "A, B & C". */
+    var joined = name.replace(/\s*(,|&|\band\b|\be\b)\s*/gi, ' & ');
     var isPair = /&/.test(joined);
+    var chunks = joined.split('&').map(function (chunk) { return chunk.trim(); }).filter(Boolean);
+    var list = function (items) {
+      return items.length > 2 ? items.slice(0, -1).join(', ') + ' & ' + items[items.length - 1] : items.join(' & ');
+    };
+    /* With two people or more, only a last name of two words carries a
+       surname: "Giuseppe & Donatella Briotto" does, "Alfonso & Anna" does not. */
+    if (isPair && chunks.length && chunks[chunks.length - 1].split(' ').length < 2) surname = '';
+
+    /* A first name, keeping a title that goes with it: "Tate Jack", "mee Suzen". */
+    var firstOf = function (chunk) {
+      var words = chunk.split(' ');
+      return TITLES.test(words[0]) && words.length > 1 ? words[0] + ' ' + words[1] : words[0];
+    };
 
     var first;
     if (isPair) {
-      first = joined
-        .split('&')
-        .map(function (chunk) { return chunk.trim().split(' ')[0]; })
-        .filter(Boolean)
-        .join(' & ');
+      first = list(chunks.map(firstOf));
     } else {
-      first = parts[0];
+      first = firstOf(name);
     }
 
     var short;
     if (isPair) {
-      short = joined
-        .split('&')
-        .map(function (chunk) { return chunk.trim().charAt(0).toUpperCase() + '.'; })
-        .filter(function (i) { return i !== '.'; })
-        .join(' & ') + ' ' + surname;
+      short = (list(chunks.map(function (chunk) { return chunk.charAt(0).toUpperCase() + '.'; })) + ' ' + surname).trim();
     } else {
       short = (given.length ? given[0].charAt(0).toUpperCase() + '. ' : '') + surname;
     }
@@ -1064,19 +1074,99 @@ window.INVITATION = (function () {
      theirs out and answer for them. A link that already went out without a
      k keeps its shape, so it never turns into "changed since sending". */
   function keyFor(g) {
-    if (g.status === 'sent' && g.sentLink) {
+    if (g.status === 'sent' && /#/.test(g.sentLink || '')) {
       var sent = I.decodePayload(g.sentLink.split('#')[1]);
       if (!sent || !sent.k) return '';
     }
     return ids.get(g) || '';
   }
-  function linkFor(g) {
+  function inviteOf(g) {
     var f = forms(g);
-    var data = { t: (g.name || '').trim(), n: (g.note || '').trim(), l: g.lang === 'it' ? 'it' : 'en',
+    return { t: (g.name || '').trim(), n: (g.note || '').trim(), l: g.lang === 'it' ? 'it' : 'en',
       f: f.full, r: f.first, s: f.short };
+  }
+  function longLinkFor(g) {
+    var data = inviteOf(g);
     var k = keyFor(g);
     if (k) data.k = k;
     return I.guestLink(data);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Short links                                                         */
+  /*                                                                     */
+  /* A guest's short link is the site's address and an eight-character   */
+  /* code worked out from their id, so it never changes and both phones  */
+  /* agree on it without saving anything. What it says (names, language, */
+  /* note) is published to the worker in front of the site, which writes */
+  /* it into the invitation when the link is opened -- so editing a      */
+  /* guest after sending updates the invitation they already have. Until */
+  /* the worker has a guest's code their link is the long one, which     */
+  /* always works.                                                       */
+  /* ------------------------------------------------------------------ */
+
+  var SHORT = I.CHECKIN_API.replace(/api\/$/, '');
+  var live = {};            // code -> true once the worker has it
+  var publishedSig = {};    // code -> what it was last published saying
+  var publishFailed = false;
+
+  /* No 0/o or 1/l, so a code read out loud survives. The worker checks the same shape. */
+  function inviteCode(id) {
+    var s = 'bfa-invite:' + id, h1 = 0xdeadbeef, h2 = 0x41c6ce57, i, ch;
+    for (i = 0; i < s.length; i++) {
+      ch = s.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    var abc = 'abcdefghijkmnpqrstuvwxyz23456789', out = '';
+    for (i = 0; i < 6; i++) out += abc.charAt((h1 >>> (i * 5)) & 31);
+    for (i = 0; i < 2; i++) out += abc.charAt((h2 >>> (i * 5)) & 31);
+    return out;
+  }
+  function codeOf(g) { var id = ids.get(g); return id ? inviteCode(id) : ''; }
+
+  function linkFor(g) {
+    var code = codeOf(g);
+    return code && live[code] ? SHORT + code : longLinkFor(g);
+  }
+
+  function schedulePublish() {
+    clearTimeout(publishInvites.timer);
+    publishInvites.timer = setTimeout(publishInvites, 1000);
+  }
+  function publishInvites() {
+    clearTimeout(publishInvites.timer);
+    var token = Sync.token();
+    if (!ready || canWrite === false || !token || publishInvites.busy) return;
+    var batch = {}, sigs = {};
+    Object.keys(guests).forEach(function (id) {
+      var g = guests[id], code = inviteCode(id), invite = inviteOf(g), sig = JSON.stringify(invite);
+      if (publishedSig[code] === sig) return;
+      sigs[code] = sig;
+      invite.u = g.updatedAt || 0;
+      batch[code] = invite;
+    });
+    if (!Object.keys(batch).length) return;
+    publishInvites.busy = true;
+    fetch(I.CHECKIN_API + 'invites', {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ invites: batch })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      Object.keys(sigs).forEach(function (code) { publishedSig[code] = sigs[code]; live[code] = true; });
+      publishFailed = false;
+      publishInvites.busy = false;
+      scheduleRender();
+      schedulePublish();   /* anything edited while this was on its way */
+    }).catch(function () {
+      if (!publishFailed) toast('Could not reach the check-in desk to update the short links. Links are the long kind until it works again.');
+      publishFailed = true;
+      publishInvites.busy = false;
+      publishInvites.timer = setTimeout(publishInvites, 60000);
+    });
   }
 
   function messageFor(g) {
@@ -1103,7 +1193,8 @@ window.INVITATION = (function () {
     if (g.status !== 'sent') return 'todo';
     return hasReply(g) ? 'replied' : 'sent';
   }
-  function isStale(g) { return g.status === 'sent' && g.sentLink && g.sentLink !== linkFor(g); }
+  /* A short link shows whatever the list says now, so only a long one can go out of date. */
+  function isStale(g) { return g.status === 'sent' && /#/.test(g.sentLink || '') && g.sentLink !== longLinkFor(g); }
 
   function when(ms) {
     if (!ms) return '';
@@ -1177,13 +1268,18 @@ window.INVITATION = (function () {
 
   function fragmentOf(link) { return String(link || '').split('#')[1] || ''; }
 
+  /* Every key a check-in from this guest can be filed under: the fragment of
+     a long link (the one they would get now, and the one they were sent), or
+     the code of their short link. */
+  function keysOf(id) {
+    var g = guests[id];
+    return [fragmentOf(longLinkFor(g)), fragmentOf(g.sentLink), inviteCode(id)].filter(Boolean);
+  }
+
   function fingerprintAll() {
     var want = {};
     Object.keys(guests).forEach(function (id) {
-      [linkFor(guests[id]), guests[id].sentLink].forEach(function (l) {
-        var f = fragmentOf(l);
-        if (f && !(f in refOf)) want[f] = 1;
-      });
+      keysOf(id).forEach(function (f) { if (!(f in refOf)) want[f] = 1; });
     });
     return Promise.all(Object.keys(want).map(function (f) {
       return I.checkinRef(f).then(function (r) { refOf[f] = r; });
@@ -1194,8 +1290,8 @@ window.INVITATION = (function () {
     var hit = null;
     Object.keys(guests).some(function (id) {
       var g = guests[id];
-      if ((g.checkinRefs || []).indexOf(c.ref) !== -1 || refOf[fragmentOf(linkFor(g))] === c.ref ||
-          (g.sentLink && refOf[fragmentOf(g.sentLink)] === c.ref)) { hit = id; return true; }
+      if ((g.checkinRefs || []).indexOf(c.ref) !== -1 ||
+          keysOf(id).some(function (k) { return refOf[k] === c.ref; })) { hit = id; return true; }
       return false;
     });
     if (hit) return hit;
@@ -1341,6 +1437,7 @@ window.INVITATION = (function () {
   }
 
   function render() {
+    schedulePublish();
     var all = sorted();
     var counts = { all: all.length, todo: 0, sent: 0, replied: 0 }, people = 0;
     all.forEach(function (x) { counts[stateOf(x.g)]++; people += peopleOf(x.g); });

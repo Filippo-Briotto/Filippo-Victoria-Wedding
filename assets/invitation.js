@@ -390,6 +390,9 @@ window.INVITATION = (function () {
      the passes, first-name-only in the letter, and initial + surname on the
      tear-off stub the way the reference pass did it ("R. PINEHAS"). Names with
      two guests ("Anna & Marco Rossi") keep both given names in the greeting. */
+  /* Words that are said together with the name after them: father, mother. */
+  var TITLES = /^(tate|meme|mee)$/i;
+
   function nameForms(raw) {
     var name = String(raw || '').replace(/\s+/g, ' ').trim();
     if (!name) return { full: '', first: '', short: '' };
@@ -398,27 +401,34 @@ window.INVITATION = (function () {
     var surname = parts[parts.length - 1];
     var given = parts.slice(0, -1);
 
-    var joined = name.replace(/\s*(&|\band\b|\be\b)\s*/gi, ' & ');
+    /* "Francesca, Nicola & Alvise" is three people: a comma separates them
+       too, and three or more are listed "A, B & C". */
+    var joined = name.replace(/\s*(,|&|\band\b|\be\b)\s*/gi, ' & ');
     var isPair = /&/.test(joined);
+    var chunks = joined.split('&').map(function (chunk) { return chunk.trim(); }).filter(Boolean);
+    var list = function (items) {
+      return items.length > 2 ? items.slice(0, -1).join(', ') + ' & ' + items[items.length - 1] : items.join(' & ');
+    };
+    /* With two people or more, only a last name of two words carries a
+       surname: "Giuseppe & Donatella Briotto" does, "Alfonso & Anna" does not. */
+    if (isPair && chunks.length && chunks[chunks.length - 1].split(' ').length < 2) surname = '';
+
+    /* A first name, keeping a title that goes with it: "Tate Jack", "mee Suzen". */
+    var firstOf = function (chunk) {
+      var words = chunk.split(' ');
+      return TITLES.test(words[0]) && words.length > 1 ? words[0] + ' ' + words[1] : words[0];
+    };
 
     var first;
     if (isPair) {
-      first = joined
-        .split('&')
-        .map(function (chunk) { return chunk.trim().split(' ')[0]; })
-        .filter(Boolean)
-        .join(' & ');
+      first = list(chunks.map(firstOf));
     } else {
-      first = parts[0];
+      first = firstOf(name);
     }
 
     var short;
     if (isPair) {
-      short = joined
-        .split('&')
-        .map(function (chunk) { return chunk.trim().charAt(0).toUpperCase() + '.'; })
-        .filter(function (i) { return i !== '.'; })
-        .join(' & ') + ' ' + surname;
+      short = (list(chunks.map(function (chunk) { return chunk.charAt(0).toUpperCase() + '.'; })) + ' ' + surname).trim();
     } else {
       short = (given.length ? given[0].charAt(0).toUpperCase() + '. ' : '') + surname;
     }
