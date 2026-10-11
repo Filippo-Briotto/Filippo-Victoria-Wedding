@@ -33,6 +33,12 @@ if (!/^[a-z0-9]{6,}$/i.test(slug)) {
   throw new Error('SITE should end in an unguessable folder name, got: ' + slug);
 }
 
+/* The worker serves short links from this page, so it has to know the folder. */
+const worker = fs.readFileSync(path.join(root, 'worker', 'index.js'), 'utf8');
+if (worker.indexOf("INVITATION_PAGE = '/" + slug + "/'") === -1) {
+  throw new Error('Set INVITATION_PAGE in worker/index.js to \'/' + slug + '/\' as well');
+}
+
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8').replace(/<\/script/gi, '<\\/script');
 
 const bootstrap = `
@@ -48,13 +54,17 @@ const bootstrap = `
    done, document.open() genuinely clears the document first. */
 (function () {
   function render() {
-    var data = window.INVITATION.decodePayload(location.hash) || {};
+    /* A short link arrives with the guest already written in by the worker
+       (worker/index.js); its check-in is filed under the code. A long link
+       carries the guest in the fragment, and files its check-in under that. */
+    var invite = window.INVITE;
+    var data = (invite ? invite.data : window.INVITATION.decodePayload(location.hash)) || {};
     var html = window.INVITATION.buildDocument({
       passenger: data.t || '',
       nameOverrides: { full: data.f, first: data.r, short: data.s },
       note: data.n || '',
       lang: data.l === 'it' ? 'it' : 'en',
-      checkinKey: location.hash,
+      checkinKey: invite ? invite.code : location.hash,
       fontCss: window.INVITATION_FONT_CSS,
       stampArt: window.STAMP_ART,
       letterArt: window.LETTER_ART,
