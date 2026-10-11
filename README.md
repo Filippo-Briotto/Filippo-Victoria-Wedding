@@ -9,7 +9,7 @@ Three legs, one marriage:
 
 | | Route | When | |
 |---|---|---|---|
-| 1 | `HOM → ITA` Italy | 21 December 2026 | The party |
+| 1 | `HOM → ITA` Italy | 20 December 2026 | The party |
 | 2 | `ITA → AMS` Amsterdam | 29 December 2026 | The vows — intimate ceremony, no reception |
 | 3 | `AMS → WDH` Windhoek, Namibia | 2027, date to be announced | The traditional ceremony |
 
