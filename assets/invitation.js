@@ -124,6 +124,8 @@ window.INVITATION = (function () {
       itineraryTitle: 'Your itinerary',
       pageOf: function (n, of) { return 'Page ' + n + ' of ' + of; },
       noteTitle: 'A note for you',
+      giftsTitle: 'Duty free · Gifts',
+      giftsBody: 'Having you on board is the only gift we need, so please travel light: no parcels, as between three countries we would have nowhere to put them. If you would still like to give us something, a contribution in an envelope towards our life together would mean the world to us.',
       signOff: 'With all our love,',
       smallPrint: 'This booking is non-transferable, infinitely refundable in love, and requires no luggage but yourselves. Changes to the itinerary will be communicated by the Briotto Family Airline in due course.',
 
@@ -239,6 +241,8 @@ window.INVITATION = (function () {
       itineraryTitle: 'Il tuo itinerario',
       pageOf: function (n, of) { return 'Pagina ' + n + ' di ' + of; },
       noteTitle: 'Due righe per te',
+      giftsTitle: 'Duty free · Regali',
+      giftsBody: 'Averti a bordo è l’unico regalo che ci serve, quindi niente pacchi, per favore: tra tre paesi non sapremmo dove metterli. Se vuoi comunque farci un regalo, un contributo in busta per la nostra vita insieme ci renderà felicissimi.',
       signOff: 'Con tutto il nostro affetto,',
       smallPrint: 'Questa prenotazione non è cedibile, è infinitamente rimborsabile in affetto e non richiede altro bagaglio che voi stessi. Eventuali modifiche all’itinerario saranno comunicate dalla Briotto Family Airline a tempo debito.',
 

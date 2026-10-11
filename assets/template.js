@@ -246,6 +246,10 @@
       '</div>' +
 
       '<div class="sheet' + (withPicture ? ' sheet--pictured' : '') + ' paper">' +
+        '<section class="letter__gifts">' +
+          '<h3>' + esc(t.giftsTitle) + '</h3>' +
+          '<p>' + esc(t.giftsBody) + '</p>' +
+        '</section>' +
         noteBlock +
 
         '<footer class="letter__sign">' +
@@ -724,7 +728,8 @@
 '.letter p{margin:0 0 13px}',
 '.letter__greeting{font-size:1.18em;color:var(--blue)}',
 '.letter__itin{margin:24px 0 4px}',
-'.letter__itin h3,.letter__note h3{margin:0 0 12px;font-family:var(--mono);font-size:11px;',
+'.letter__gifts{margin:0 0 4px}',
+'.letter__itin h3,.letter__note h3,.letter__gifts h3{margin:0 0 12px;font-family:var(--mono);font-size:11px;',
 '  letter-spacing:.24em;text-transform:uppercase;color:var(--ink-2);font-weight:400}',
 '.itin{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}',
 '.itin__row{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:baseline;',
