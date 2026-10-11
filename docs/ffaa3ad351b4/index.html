@@ -453,9 +453,9 @@ window.INVITATION = (function () {
       refLabel: 'Reference',
       greeting: function (name) { return 'Dear ' + name + ','; },
       letterBody: [
-        'Good news from the flight deck: we are getting married! We couldn’t settle on just one celebration, so we booked three, and there is a seat with your name on it for every leg.',
+        'Good news from the flight deck: we are getting married! We couldn’t settle on just one celebration, so we booked three, and you are invited to every one of them.',
         'We take off in Italy on the 21st of December, with a party to get the whole thing started. On the 29th we touch down in Amsterdam to make it official: a small ceremony, just the vows. Then, in 2027, the final leg takes us to Namibia for one more celebration, on a date still being added to the timetable.',
-        'Boarding details for each leg will follow closer to departure. For now, all we need from you is a yes.'
+        'One thing before you pack: the boarding passes are your invitation, not real plane tickets, so the journey and a place to stay are yours to arrange. No need to make all three, either: just tell us which ones you can. Boarding details will follow closer to departure.'
       ],
       itineraryTitle: 'Your itinerary',
       pageOf: function (n, of) { return 'Page ' + n + ' of ' + of; },
@@ -571,9 +571,9 @@ window.INVITATION = (function () {
       refLabel: 'Riferimento',
       greeting: function (name) { return 'Ciao ' + name + ','; },
       letterBody: [
-        'Notizie dalla cabina di pilotaggio: ci sposiamo! Non riuscivamo a scegliere una sola festa, così ne abbiamo prenotate tre, e su ogni tratta c’è un posto con il tuo nome.',
+        'Notizie dalla cabina di pilotaggio: ci sposiamo! Non riuscivamo a scegliere una sola festa, così ne abbiamo prenotate tre, e ti aspettiamo a ognuna.',
         'Si decolla in Italia il 21 dicembre, con una festa per dare il via a tutto. Il 29 atterriamo ad Amsterdam per renderlo ufficiale: una cerimonia piccola, solo le promesse. Poi, nel 2027, l’ultima tratta ci porta in Namibia per un’ultima festa, in una data ancora da inserire nell’orario dei voli.',
-        'I dettagli d’imbarco di ogni tratta arriveranno più vicino alla partenza. Per ora ci basta un tuo sì.'
+        'Una cosa prima di fare le valigie: le carte d’imbarco sono il tuo invito, non veri biglietti aerei, quindi viaggio e alloggio restano da organizzare per conto tuo. E non serve esserci a tutte e tre: dicci solo a quali riesci a venire. I dettagli d’imbarco arriveranno più vicino alla partenza.'
       ],
       itineraryTitle: 'Il tuo itinerario',
       pageOf: function (n, of) { return 'Pagina ' + n + ' di ' + of; },
@@ -1025,8 +1025,8 @@ window.INVITATION = (function () {
     { id: 'wdh', city: 'Namibia', what: 'Traditional ceremony', when: '2027, date TBA' }
   ];
   var DEFAULT_TPL = {
-    en: 'Dear {first},\n\nFlight 1D0 is boarding, and there is a seat with your name on it. Your invitation is here:\n{link}\n\nWith love,\nFilippo & Victoria',
-    it: 'Ciao {first},\n\nIl volo 1D0 è in partenza e c’è un posto con il tuo nome. Il tuo invito è qui:\n{link}\n\nCon affetto,\nFilippo & Victoria'
+    en: 'Dear {first},\n\nWe are getting married, and we would love to have you there! Your invitation is here, dressed up as boarding passes (no real flights included, sadly):\n{link}\n\nWith love,\nFilippo & Victoria',
+    it: 'Ciao {first},\n\nCi sposiamo e ci piacerebbe tanto averti con noi! Il tuo invito è qui, travestito da carte d’imbarco (i voli veri non sono inclusi, purtroppo):\n{link}\n\nCon affetto,\nFilippo & Victoria'
   };
 
   var canWrite = true, ready = false;
